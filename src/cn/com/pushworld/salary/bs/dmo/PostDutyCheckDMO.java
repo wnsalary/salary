@@ -22,6 +22,7 @@ import cn.com.pushworld.salary.to.SalaryTBUtil;
  * 岗位职责评议服务器段通用方法。
  * @author haoming
  * create by 2014-3-25
+ * zzl
  */
 public class PostDutyCheckDMO extends SalaryAbstractCommDMO {
 

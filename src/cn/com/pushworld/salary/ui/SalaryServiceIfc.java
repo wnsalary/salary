@@ -90,6 +90,9 @@ public interface SalaryServiceIfc extends WLTRemoteCallServiceIfc {
 
 	public String calcOneDeptTargetDL(HashVO targetVO, String selectDate) throws Exception;
 
+	//部门指标计算结果列表展示
+	public HashVO[] calcOneDeptTargetDL2(HashVO targetVO, String selectDate) throws Exception;
+
 	/** ************* 结束 **************** */
 
 	// 部门考核汇总
@@ -203,4 +206,6 @@ public interface SalaryServiceIfc extends WLTRemoteCallServiceIfc {
 	/*****************************************************/
 	//根据部门计价指标获取部门的绩效工资
 	public BillCellVO getJJTargetDeptJXMoney(String _logid, String _deptids[], String[] _noJoinStationkind) throws Exception;
+
+
 }

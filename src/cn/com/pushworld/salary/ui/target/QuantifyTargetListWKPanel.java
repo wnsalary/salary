@@ -13,26 +13,19 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import cn.com.infostrategy.to.common.HashVO;
 import cn.com.infostrategy.to.common.TBUtil;
 import cn.com.infostrategy.to.common.WLTConstants;
 import cn.com.infostrategy.to.common.WLTLogger;
 import cn.com.infostrategy.to.mdata.BillVO;
+import cn.com.infostrategy.to.mdata.Pub_Templet_1VO;
+import cn.com.infostrategy.to.mdata.Pub_Templet_1_ItemVO;
 import cn.com.infostrategy.to.mdata.RefItemVO;
-import cn.com.infostrategy.ui.common.AbstractWorkPanel;
-import cn.com.infostrategy.ui.common.MessageBox;
-import cn.com.infostrategy.ui.common.SplashWindow;
-import cn.com.infostrategy.ui.common.UIUtil;
-import cn.com.infostrategy.ui.common.WLTButton;
-import cn.com.infostrategy.ui.common.WLTSplitPane;
-import cn.com.infostrategy.ui.common.WLTTabbedPane;
-import cn.com.infostrategy.ui.mdata.BillCardDialog;
-import cn.com.infostrategy.ui.mdata.BillCardPanel;
-import cn.com.infostrategy.ui.mdata.BillListPanel;
-import cn.com.infostrategy.ui.mdata.BillTreePanel;
-import cn.com.infostrategy.ui.mdata.BillTreeSelectListener;
-import cn.com.infostrategy.ui.mdata.BillTreeSelectionEvent;
+import cn.com.infostrategy.ui.common.*;
+import cn.com.infostrategy.ui.mdata.*;
 import cn.com.pushworld.salary.ui.SalaryServiceIfc;
 import cn.com.pushworld.salary.ui.paymanage.RefDialog_Month;
+import jxl.write.Boolean;
 
 /***
  * 部门定量指标
@@ -47,8 +40,11 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 	private WLTButton btn_add0, btn_edit0, btn_delete0, btn_add, btn_edit, btn_delete, btn_action; //列表上的所有按钮
 	private WLTButton btn_tree_add, btn_tree_edit, btn_tree_del; //分类树上的按钮
 	private WLTTabbedPane maintab = null;
-
+	private TBUtil tbUtil;
+    private boolean wgflg= false;
 	public void initialize() {
+		tbUtil = new TBUtil();
+		wgflg = tbUtil.getSysOptionBooleanValue("部门计算是否列表展示",false);//zzl[2020-5-14] 是否开启部门计算已列表展示
 		bp_targetlist = new BillListPanel("SAL_TARGET_LIST_CODE_QUANTIFY");
 		bp_targetlist.setDataFilterCustCondition("type='部门定量指标'");
 		initBtn();
@@ -164,7 +160,11 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 		} else if (e.getSource() == btn_tree_del) {
 			onTreeDelete();
 		} else {
-			onAction();
+			if(wgflg){
+				deptListZs();
+			}else{
+				onAction();
+			}
 		}
 	}
 
@@ -353,5 +353,51 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 			WLTLogger.getLogger(QuantifyTargetListWKPanel.class).error(e);
 		}
 		return "2013-08";
+	}
+
+	/**
+	 * zzl[2020-5-14]
+	 * 部门指标计算结果原来是文本展示，现增加列表展示
+	 */
+	public void deptListZs(){
+		BillVO targetVO = bp_targetlist.getSelectedBillVO();
+		String date = getDate(this);
+		if (TBUtil.getTBUtil().isEmpty(date)) {
+			return;
+		}
+		Pub_Templet_1VO templetVO = new Pub_Templet_1VO();
+		templetVO.setTempletname("部门指标计算");
+		String [] columns = new String[]{"targetname","checkeddeptname","rtobj","value","process"};
+		String [] columnNames=new String[]{"指标名称","被考核部门","实际完成值","得分","计算过程"};
+		templetVO.setRealViewColumns(columns);
+		templetVO.setIsshowlistpagebar(false);
+		templetVO.setIsshowlistopebar(false);
+		templetVO.setListheaderisgroup(false);
+		templetVO.setIslistpagebarwrap(false);
+		templetVO.setIsshowlistquickquery(false);
+		templetVO.setIscollapsequickquery(true);
+		templetVO.setIslistautorowheight(true);
+		Pub_Templet_1_ItemVO[] templetItemVOs = new Pub_Templet_1_ItemVO[5];
+		for(int i=0;i<columns.length;i++){
+			templetItemVOs[i]=new Pub_Templet_1_ItemVO();
+			templetItemVOs[i].setListisshowable(true);
+			templetItemVOs[i].setPub_Templet_1VO(templetVO);
+			templetItemVOs[i].setListwidth(150);
+			templetItemVOs[i].setItemtype("文本框");
+			templetItemVOs[i].setListiseditable("4");
+			templetItemVOs[i].setItemkey(columns[i].toString());
+			templetItemVOs[i].setItemname(columnNames[i].toString());
+		}
+		templetVO.setItemVos(templetItemVOs);
+		BillListPanel list = new BillListPanel(templetVO);
+		try{
+			HashVO [] vos =getService().calcOneDeptTargetDL2(targetVO.convertToHashVO(), date);
+			list.putValue(vos);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		BillListDialog dialog=new BillListDialog(bp_targetlist,"部门指标计算",list,1000,800,true);
+		dialog.getBtn_confirm().setVisible(false);
+		dialog.setVisible(true);
 	}
 }

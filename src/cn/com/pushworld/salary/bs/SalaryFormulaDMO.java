@@ -1867,6 +1867,83 @@ public class SalaryFormulaDMO extends AbstractDMO {
 	}
 
 	/**
+	 *
+	 * @param targetVO
+	 * @param selectDate
+	 * @return
+	 * @throws Exception
+	 * zzl[2020-5-14] 部门计算结果返回HashVo[]
+	 */
+	public HashVO [] calcOneDeptTargetDL2(HashVO targetVO, String selectDate) throws Exception {
+		HashVO [] vos;
+		String formulatext = targetVO.getStringValue("getvalue");
+		String define = targetVO.getStringValue("define");
+		String currdeptid = "";
+		CommDMO dmo = new CommDMO();
+		SalaryFomulaParseUtil util = new SalaryFomulaParseUtil();
+		String checkdeptid = targetVO.getStringValue("checkeddept");
+		String weights = targetVO.getStringValue("weights");
+		String targetType = targetVO.getStringValue("type");
+		HashVO checkdeptvos[] = dmo.getHashVoArrayByDS(null, "select * from sal_target_checkeddept where id in(" + TBUtil.getTBUtil().getInCondition(checkdeptid) + ")");
+		StringBuffer executeValueSB = new StringBuffer();
+		String dw = "部门计价指标".equals(targetType) ? "薪酬" : "得分";
+		List <HashVO> list=new ArrayList<HashVO>();
+		for (int i = 0; i < checkdeptvos.length; i++) {
+			String deptids = checkdeptvos[i].getStringValue("deptid");
+			String planvalue = checkdeptvos[i].getStringValue("planedvalue");
+			String deptarrays[] = TBUtil.getTBUtil().split(deptids, ";");
+			for (int j = 0; j < deptarrays.length; j++) {
+				String uid = deptarrays[j];
+				String deptname = dmo.getStringValueByDS(null, "select name from pub_corp_Dept where id = '" + uid + "'");
+				if (uid == null || uid.equals("") || tbutil.isEmpty(deptname)) {
+					continue;
+				}
+				HashVO scorevo = new HashVO();
+				scorevo.setAttributeValue("targetid", targetVO.getStringValue("id"));
+				scorevo.setAttributeValue("targetname", targetVO.getStringValue("name"));
+				scorevo.setAttributeValue("checkeddept", uid);
+				scorevo.setAttributeValue("maindeptid", uid);
+				scorevo.setAttributeValue("checkdradio", planvalue);
+				scorevo.setAttributeValue("weights", weights);
+				scorevo.setAttributeValue("checkdate", selectDate);
+				scorevo.setAttributeValue("checkeddeptname", deptname);
+				currdeptid = uid;
+				StringBuffer sb = new StringBuffer();
+				String targetName = targetVO.getStringValue("name");
+				String targetFactorName = targetName + "对象";
+				util.putDefaultFactorVO("数字", formulatext, targetFactorName, "", "4位小数");
+				Object rtobj = util.onExecute(util.getFoctorHashVO(targetFactorName), scorevo, sb);
+				define = define.replaceAll("x", "[" + targetFactorName + "]");
+				define = TBUtil.getTBUtil().replaceAll(define, "[计划值]", "[传入数据." + "planedvalue]");
+				define = TBUtil.getTBUtil().replaceAll(define, "[目标值]", "[传入数据." + "planedvalue]");
+				define = TBUtil.getTBUtil().replaceAll(define, "[权重]", "[传入数据." + "weights]");
+				util.putDefaultFactorVO("数字", define, targetName + "得分计算", "", "4位小数");
+				// 把计划值改掉
+				scorevo.setAttributeValue("planedvalue", planvalue);
+				scorevo.setAttributeValue("weights", weights);
+				Object obj = util.onExecute(util.getFoctorHashVO(targetName + "得分计算"), scorevo, sb);
+				double value = 0;
+				if (obj instanceof Number) {
+					try {
+						value = Double.parseDouble(String.valueOf(obj));
+					} catch (Exception e) {
+						throw e;
+					}
+				}
+				scorevo.setAttributeValue("rtobj",rtobj);
+				scorevo.setAttributeValue("value",value);
+				scorevo.setAttributeValue("process",sb.toString());
+				list.add(scorevo);
+//				executeValueSB.append("该指标【" + scorevo.getStringValue("checkeddeptname") + "】实际值完成值【" + rtobj + "】  " + "最终" + dw + value + " \r\n" + sb + "\r\n");
+			}
+		}
+		vos = new HashVO [list.size()];
+		for(int i=0;i<list.size();i++){
+			vos[i]=list.get(i);
+		}
+		return vos;
+	}
+	/**
 	 * 通过定时器，自动计算部分定量指标实际效益工资。
 	 * 传入日期格式 yyyy-MM-dd
 	 * 返回值0为没有需要计算的指标

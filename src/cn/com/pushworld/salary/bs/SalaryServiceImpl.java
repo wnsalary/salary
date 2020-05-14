@@ -7565,10 +7565,15 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 		return new PostDutyCheckDMO().getPostDutyDetailCompute(logid, checkeduserid);
 	}
 
+	@Override
 	public String calcOneDeptTargetDL(HashVO targetVO, String selectDate) throws Exception {
 		return new SalaryFormulaDMO().calcOneDeptTargetDL(targetVO, selectDate);
 	};
 
+	@Override
+	public HashVO [] calcOneDeptTargetDL2(HashVO targetVO, String selectDate) throws Exception {
+		return new SalaryFormulaDMO().calcOneDeptTargetDL2(targetVO, selectDate);
+	};
 	public BillCellVO getDeptTargetQueryCellVO(HashMap hashMap) throws Exception {
 		return new TargetDMO().getDeptTargetQueryCellVO(hashMap);
 	}

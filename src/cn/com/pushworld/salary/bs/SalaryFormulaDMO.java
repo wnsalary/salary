@@ -1305,7 +1305,13 @@ public class SalaryFormulaDMO extends AbstractDMO {
 			if ("计算".equals(valuetype) || "个岗计算".equals(valuetype) || "个部岗计算".equals(valuetype)) {
 				zjCalc = false;
 			}
-			HashVO target_post_vos[] = dmo.getHashVoArrayByDS(null, "select * from sal_person_check_post where targetid=" + _targetID); // 找到该指标的被考核对象
+			Boolean wgflg=tbutil.getTBUtil().getSysOptionBooleanValue("是否启动网格指标计算模式",false);
+			HashVO target_post_vos[];
+			if(wgflg && target[0].getStringValue("catalogid").equals("215")){
+				target_post_vos= dmo.getHashVoArrayByDS(null, "select * from sal_person_check_post_wg where targetid=" + _targetID); // 找到该指标的被考核对象
+			}else{
+				target_post_vos= dmo.getHashVoArrayByDS(null, "select * from sal_person_check_post where targetid=" + _targetID); // 找到该指标的被考核对象
+			}
 			HashMap<String, HashVO> post_targetMap = new HashMap<String, HashVO>(); // 岗位类型名称和sal_person_check_post对应关系。
 			List posttypes = new ArrayList();
 			for (int i = 0; i < target_post_vos.length; i++) { // 得到所有被考核的人。
@@ -1318,10 +1324,9 @@ public class SalaryFormulaDMO extends AbstractDMO {
 					}
 				}
 			}
-			Boolean wgflg=tbutil.getTBUtil().getSysOptionBooleanValue("是否启动网格指标计算模式",false);
 			HashVO allCheckedUsers[];
 			if(wgflg && target[0].getStringValue("catalogid").equals("215")){
-				allCheckedUsers = dmo.getHashVoArrayByDS(null, "select * from EXCEL_TAB_85 where id in (" + tbutil.getInCondition(posttypes) + ")"); // [2020-5-11]找到所有需要考核的网格
+				allCheckedUsers = dmo.getHashVoArrayByDS(null, "select exc.*,sal.id userid,sal.NAME,sal.SEX,sal.BIRTHDAY,sal.TELLERNO,sal.CARDID,sal.POSITION,sal.STATIONDATE,sal.STATIONRATIO,sal.AGE,sal.DEGREE,sal.UNIVERSITY,sal.SPECIALITIES,sal.POSTTITLE,sal.POSTTITLEAPPLYDATE,sal.POLITICALSTATUS,sal.CONTRACTDATE,sal.JOINWORKDATE,sal.JOINSELFBANKDATE,sal.WORKAGE,sal.SELFBANKAGE,sal.ONLYCHILDRENBTHDAY,sal.SELFBANKACCOUNT,sal.OTHERACCOUNT,sal.FAMILYACCOUNT,sal.PENSION,sal.HOUSINGFUND,sal.PLANWAY,sal.PLANRATIO,sal.ISUNCHECK,sal.FAMILYNAME,sal.MEDICARE,sal.TEMPORARY,sal.OTHERGLOD,sal.TECHNOLOGY,sal.STATIONKIND,sal.MAINDEPTID,sal.DEPTID,sal.DEPTNAME,sal.MAINSTATIONID,sal.MAINSTATION,sal.POSTSEQ,sal.DEPTSEQ,sal.LINKCODE,sal.DEPTCODE from EXCEL_TAB_85 exc left join v_sal_personinfo sal on exc.g=sal.code where exc.id in (" + tbutil.getInCondition(posttypes) + ")"); // [2020-5-11]找到所有需要考核的网格
 			}else{
 				allCheckedUsers = dmo.getHashVoArrayByDS(null, "select t1.*,t2.shortname from v_sal_personinfo t1 left join pub_corp_dept t2 on t1.maindeptid = t2.id where  ( isuncheck ='N' or isuncheck is null)   and  stationkind in (" + tbutil.getInCondition(posttypes) + ")"); // 找到该岗位被考评的所有人
 			}

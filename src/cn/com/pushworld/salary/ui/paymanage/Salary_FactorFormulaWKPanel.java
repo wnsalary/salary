@@ -483,7 +483,7 @@ public class Salary_FactorFormulaWKPanel extends AbstractWorkPanel implements Ac
 		} else if(index == 4){//zzl[2020-5-9] Íø¸ñ»¯²âÊÔ°´Å¥¹¦ÄÜ
 			String uid = JOptionPane.showInputDialog(_parent, "ÇëÊäÍø¸ñÃû³Æ/Íø¸ñ±àÂë");
 			selectDate = getDate(_parent);
-            sql= "select wg.*,sal.id userid,sal.MAINDEPTID MAINDEPTID,sal.DEPTID DEPTID from excel_tab_85 wg left join v_sal_personinfo sal on wg.f=sal.deptcode where wg.D='"+uid+"' or wg.E='"+uid+"'";
+            sql= "select exc.*,sal.id userid,sal.NAME,sal.SEX,sal.BIRTHDAY,sal.TELLERNO,sal.CARDID,sal.POSITION,sal.STATIONDATE,sal.STATIONRATIO,sal.AGE,sal.DEGREE,sal.UNIVERSITY,sal.SPECIALITIES,sal.POSTTITLE,sal.POSTTITLEAPPLYDATE,sal.POLITICALSTATUS,sal.CONTRACTDATE,sal.JOINWORKDATE,sal.JOINSELFBANKDATE,sal.WORKAGE,sal.SELFBANKAGE,sal.ONLYCHILDRENBTHDAY,sal.SELFBANKACCOUNT,sal.OTHERACCOUNT,sal.FAMILYACCOUNT,sal.PENSION,sal.HOUSINGFUND,sal.PLANWAY,sal.PLANRATIO,sal.ISUNCHECK,sal.FAMILYNAME,sal.MEDICARE,sal.TEMPORARY,sal.OTHERGLOD,sal.TECHNOLOGY,sal.STATIONKIND,sal.MAINDEPTID,sal.DEPTID,sal.DEPTNAME,sal.MAINSTATIONID,sal.MAINSTATION,sal.POSTSEQ,sal.DEPTSEQ,sal.LINKCODE,sal.DEPTCODE from EXCEL_TAB_85 exc left join v_sal_personinfo sal on exc.g=sal.code where exc.D='"+uid+"' or exc.E='"+uid+"'";
 		} else {
 			return;
 		}

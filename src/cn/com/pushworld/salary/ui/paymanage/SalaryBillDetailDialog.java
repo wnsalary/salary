@@ -216,7 +216,7 @@ public class SalaryBillDetailDialog extends BillDialog implements BillTreeSelect
 						DeleteSQLBuilder dsb2 = new DeleteSQLBuilder("sal_salarybill_detail");
 						dsb2.setWhereCondition("salarybillid=" + salarybillvo.getPkValue());
 						sql.add(dsb2.getSQL());
-						getService().onCreateSalaryBill(sql, salarybillvo.getPkValue(), salarybillvo.getStringValue("sal_account_setid"), salarybillvo.getStringValue("monthly"));
+						getService().onCreateSalaryBill(sql, salarybillvo.getPkValue(), salarybillvo.getStringValue("sal_account_setid"), salarybillvo.getStringValue("monthly"),new BillVO());
 						MessageBox.show(bl, "操作成功!");
 						// 刷新一下
 						refresh(salarybillvo.getPkValue());

@@ -32,8 +32,9 @@ public class NumberFomulaParse extends AbstractFomulaParse {
 		}
 		Object obj = util.execFormula(value, _baseDataHashVO, sourceValue); //该方法已经帮助出了了sql的特殊情况。
 		if (obj == null || "".equals(obj)) {
-			if (rtStr != null)
+			if (rtStr != null){
 				rtStr.append("在计算[" + name + "]时,求出的结果为空值。执行公式原[" + _factorHashVO.getStringValue("value") + "]+转换后公式[" + value + "].系统默认返回0.请核实");
+			}
 			return 0;
 		}
 		try {

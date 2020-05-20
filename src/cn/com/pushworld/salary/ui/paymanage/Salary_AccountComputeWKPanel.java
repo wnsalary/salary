@@ -11,6 +11,7 @@ import java.util.TimerTask;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
+import cn.com.infostrategy.to.common.HashVO;
 import cn.com.infostrategy.to.common.WLTConstants;
 import cn.com.infostrategy.to.mdata.BillVO;
 import cn.com.infostrategy.to.mdata.RefItemVO;
@@ -121,7 +122,7 @@ public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements A
 									// 插入工资表与因子的关系表
 									BillVO vo = billcardPanel.getBillVO();
 									SalaryServiceIfc ifc = (SalaryServiceIfc) UIUtil.lookUpRemoteService(SalaryServiceIfc.class);
-									ifc.onCreateSalaryBill(sql, vo.getPkValue(), accountid, checkdate);
+									ifc.onCreateSalaryBill(sql, vo.getPkValue(), accountid, checkdate,vo);
 									timer.cancel();
 									billVO = billcardPanel.getBillVO();
 									closeType = 1;
@@ -181,7 +182,8 @@ public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements A
 								// 插入工资表与因子的关系表
 								BillVO vo = billcardPanel.getBillVO();
 								SalaryServiceIfc ifc = (SalaryServiceIfc) UIUtil.lookUpRemoteService(SalaryServiceIfc.class);
-								ifc.onCreateSalaryBill(sql, vo.getPkValue(), accountid, checkdate);
+								//zzl [2020-5-18] 添加网格工资单
+								ifc.onCreateSalaryBill(sql, vo.getPkValue(), accountid, checkdate,vo);
 								timer.cancel();
 								billVO = billcardPanel.getBillVO();
 								closeType = 1;
@@ -218,8 +220,21 @@ public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements A
 			MessageBox.show(this, "请选择一条记录来进行此操作!");
 			return;
 		}
-		SalaryBillDetailDialog sbd = new SalaryBillDetailDialog(this, vo);
-		sbd.setVisible(true);
+		//zzl[2020-5-18] 网格工资单展示
+		String wgtype;
+		try{
+			HashVO[] modelVos=UIUtil.getHashVoArrayByDS(null,"select * from sal_account_set where id='"+vo.getStringValue("sal_account_setid")+"'");
+			wgtype=modelVos[0].getStringValue("name");
+			if(wgtype.contains("网格")){
+				WGSalaryBillDetailDialog sbd = new WGSalaryBillDetailDialog(this, vo);
+				sbd.setVisible(true);
+			}else{
+				SalaryBillDetailDialog sbd = new SalaryBillDetailDialog(this, vo);
+				sbd.setVisible(true);
+			}
+		}catch (Exception e){
+            e.printStackTrace();
+		}
 	}
 
 	public void onDel() {

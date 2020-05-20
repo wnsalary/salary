@@ -150,7 +150,12 @@ public class SalaryFormulaDMO extends AbstractDMO {
 		try {
 			List updateSqlList = new ArrayList();
 			updateSqlList.add("delete from sal_factor_calvalue where logid='" + planid + "' and type='员工定量指标'");
-			StringBuffer sqlTarget = new StringBuffer("select t1.*,t2.valuetype,t2.operationtype,t2.factors,t3.maindeptid,t3.maindeptid deptid,t3.maindeptid checkeddept from sal_person_check_score t1 left join  sal_person_check_list t2 on t1.targetid = t2.id left join v_sal_personinfo t3 on t1.checkeduser = t3.id  where t1.targettype='员工定量指标' and t1.logid='" + planid + "' ");
+			StringBuffer sqlTarget=new StringBuffer();
+			if(planVO.getStringValue("zbtype").equals("网格")){
+				sqlTarget.append("select t1.*,t2.valuetype,t2.operationtype,t2.factors,t3.maindeptid,t3.maindeptid deptid,t3.maindeptid checkeddept,t4.id wgid from sal_person_check_score t1 left join  sal_person_check_list t2 on t1.targetid = t2.id left join excel_tab_85 t4 on t1.checkeduser = t4.id left join  v_sal_personinfo t3 on t4.G = t3.code  where t1.targettype='员工定量指标' and logid='"+planid+"'");
+			}else{
+				sqlTarget.append("select t1.*,t2.valuetype,t2.operationtype,t2.factors,t3.maindeptid,t3.maindeptid deptid,t3.maindeptid checkeddept from sal_person_check_score t1 left join  sal_person_check_list t2 on t1.targetid = t2.id left join v_sal_personinfo t3 on t1.checkeduser = t3.id  where t1.targettype='员工定量指标' and t1.logid='" + planid + "' ");
+			}
 			if (tbutil.isEmpty(_calbatch)) {
 				sqlTarget.append(" and (t2.calbatch is null or t2.calbatch='') ");
 			} else {
@@ -1307,7 +1312,8 @@ public class SalaryFormulaDMO extends AbstractDMO {
 			}
 			Boolean wgflg=tbutil.getTBUtil().getSysOptionBooleanValue("是否启动网格指标计算模式",false);
 			HashVO target_post_vos[];
-			if(wgflg && target[0].getStringValue("catalogid").equals("215")){
+			HashVO [] vos=dmo.getHashVoArrayByDS(null,"select * from SAL_TARGET_CATALOG where id='"+target[0].getStringValue("catalogid")+"'");
+			if(wgflg && vos[0].getStringValue("name").equals("网格指标")){
 				target_post_vos= dmo.getHashVoArrayByDS(null, "select * from sal_person_check_post_wg where targetid=" + _targetID); // 找到该指标的被考核对象
 			}else{
 				target_post_vos= dmo.getHashVoArrayByDS(null, "select * from sal_person_check_post where targetid=" + _targetID); // 找到该指标的被考核对象
@@ -1325,8 +1331,8 @@ public class SalaryFormulaDMO extends AbstractDMO {
 				}
 			}
 			HashVO allCheckedUsers[];
-			if(wgflg && target[0].getStringValue("catalogid").equals("215")){
-				allCheckedUsers = dmo.getHashVoArrayByDS(null, "select exc.*,sal.id userid,sal.NAME,sal.SEX,sal.BIRTHDAY,sal.TELLERNO,sal.CARDID,sal.POSITION,sal.STATIONDATE,sal.STATIONRATIO,sal.AGE,sal.DEGREE,sal.UNIVERSITY,sal.SPECIALITIES,sal.POSTTITLE,sal.POSTTITLEAPPLYDATE,sal.POLITICALSTATUS,sal.CONTRACTDATE,sal.JOINWORKDATE,sal.JOINSELFBANKDATE,sal.WORKAGE,sal.SELFBANKAGE,sal.ONLYCHILDRENBTHDAY,sal.SELFBANKACCOUNT,sal.OTHERACCOUNT,sal.FAMILYACCOUNT,sal.PENSION,sal.HOUSINGFUND,sal.PLANWAY,sal.PLANRATIO,sal.ISUNCHECK,sal.FAMILYNAME,sal.MEDICARE,sal.TEMPORARY,sal.OTHERGLOD,sal.TECHNOLOGY,sal.STATIONKIND,sal.MAINDEPTID,sal.DEPTID,sal.DEPTNAME,sal.MAINSTATIONID,sal.MAINSTATION,sal.POSTSEQ,sal.DEPTSEQ,sal.LINKCODE,sal.DEPTCODE from EXCEL_TAB_85 exc left join v_sal_personinfo sal on exc.g=sal.code where exc.id in (" + tbutil.getInCondition(posttypes) + ")"); // [2020-5-11]找到所有需要考核的网格
+			if(wgflg && vos[0].getStringValue("name").equals("网格指标")){
+				allCheckedUsers = dmo.getHashVoArrayByDS(null, "select exc.ID wgid,exc.YEAR,exc.MONTH,exc.CREATTIME,exc.A,exc.B,exc.C,exc.D,exc.E,exc.F,exc.G,sal.id userid,sal.NAME,sal.SEX,sal.BIRTHDAY,sal.TELLERNO,sal.CARDID,sal.POSITION,sal.STATIONDATE,sal.STATIONRATIO,sal.AGE,sal.DEGREE,sal.UNIVERSITY,sal.SPECIALITIES,sal.POSTTITLE,sal.POSTTITLEAPPLYDATE,sal.POLITICALSTATUS,sal.CONTRACTDATE,sal.JOINWORKDATE,sal.JOINSELFBANKDATE,sal.WORKAGE,sal.SELFBANKAGE,sal.ONLYCHILDRENBTHDAY,sal.SELFBANKACCOUNT,sal.OTHERACCOUNT,sal.FAMILYACCOUNT,sal.PENSION,sal.HOUSINGFUND,sal.PLANWAY,sal.PLANRATIO,sal.ISUNCHECK,sal.FAMILYNAME,sal.MEDICARE,sal.TEMPORARY,sal.OTHERGLOD,sal.TECHNOLOGY,sal.STATIONKIND,sal.MAINDEPTID,sal.DEPTID,sal.DEPTNAME,sal.MAINSTATIONID,sal.MAINSTATION,sal.POSTSEQ,sal.DEPTSEQ,sal.LINKCODE,sal.DEPTCODE from EXCEL_TAB_85 exc left join v_sal_personinfo sal on exc.g=sal.code where exc.id in (" + tbutil.getInCondition(posttypes) + ")"); // [2020-5-11]找到所有需要考核的网格
 			}else{
 				allCheckedUsers = dmo.getHashVoArrayByDS(null, "select t1.*,t2.shortname from v_sal_personinfo t1 left join pub_corp_dept t2 on t1.maindeptid = t2.id where  ( isuncheck ='N' or isuncheck is null)   and  stationkind in (" + tbutil.getInCondition(posttypes) + ")"); // 找到该岗位被考评的所有人
 			}
@@ -1335,9 +1341,9 @@ public class SalaryFormulaDMO extends AbstractDMO {
 
 			HashVO scorevo[] = new HashVO[allCheckedUsers.length]; // 每人一条
 			for (int i = 0; i < allCheckedUsers.length; i++) {
-				if(wgflg && wgflg && target[0].getStringValue("catalogid").equals("215")){
+				if(wgflg && vos[0].getStringValue("name").equals("网格指标")){
 					scorevo[i] = new HashVO();
-					scorevo[i].setAttributeValue("id", allCheckedUsers[i].getStringValue("id"));//
+					scorevo[i].setAttributeValue("wgid", allCheckedUsers[i].getStringValue("wgid"));//
 					scorevo[i].setAttributeValue("targetid", _targetID);
 					scorevo[i].setAttributeValue("checkeduser", allCheckedUsers[i].getStringValue("id"));
 					scorevo[i].setAttributeValue("getvalue", target[0].getStringValue("getvalue"));

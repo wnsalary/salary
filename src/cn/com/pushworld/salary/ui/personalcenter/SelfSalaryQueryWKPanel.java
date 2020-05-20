@@ -14,21 +14,17 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import cn.com.infostrategy.to.common.HashVO;
+import cn.com.infostrategy.to.common.TBUtil;
 import cn.com.infostrategy.to.mdata.BillCellItemVO;
 import cn.com.infostrategy.to.mdata.BillCellVO;
-import cn.com.infostrategy.ui.common.AbstractWorkPanel;
-import cn.com.infostrategy.ui.common.ClientEnvironment;
-import cn.com.infostrategy.ui.common.LookAndFeel;
-import cn.com.infostrategy.ui.common.MessageBox;
-import cn.com.infostrategy.ui.common.SplashWindow;
-import cn.com.infostrategy.ui.common.UIUtil;
-import cn.com.infostrategy.ui.common.WLTLabel;
+import cn.com.infostrategy.ui.common.*;
 import cn.com.infostrategy.ui.mdata.BillQueryPanel;
 import cn.com.infostrategy.ui.mdata.querycomp.QueryCPanel_UIRefPanel;
 import cn.com.infostrategy.ui.report.BillCellHtmlHrefEvent;
 import cn.com.infostrategy.ui.report.BillCellHtmlHrefListener;
 import cn.com.infostrategy.ui.report.style2.DefaultStyleReportPanel_2;
 import cn.com.pushworld.salary.ui.SalaryUIUtil;
+import cn.com.pushworld.salary.ui.personalcenter.p070.WGSelfSalaryQueryWKPanel;
 
 /**
  * 个人工资自助查询
@@ -41,11 +37,12 @@ public class SelfSalaryQueryWKPanel extends AbstractWorkPanel implements ActionL
 	private BillQueryPanel bq = null;
 	private HashMap detailid_desc = null;
 	private String exportFileName = "工资单_";
+	private WLTTabbedPane pane = null;//zzl[2020-5-19] 增加网格工资单的页签
 
 	public void initialize() {
+		Boolean wgflg= new TBUtil().getSysOptionBooleanValue("是否启动网格指标计算模式", false);//zzl[2020-5-11]
 		dr = new DefaultStyleReportPanel_2("SAL_SALARYBILL_CODE1", "");
 		bq = dr.getBillQueryPanel();
-
 		//设置日期默认值为当前考核日期  Gwang 2013-08-21
 		QueryCPanel_UIRefPanel dateRef = (QueryCPanel_UIRefPanel) bq.getCompentByKey("monthly");
 		String checkDate = new SalaryUIUtil().getCheckDate();
@@ -55,7 +52,8 @@ public class SelfSalaryQueryWKPanel extends AbstractWorkPanel implements ActionL
 		String loginUserName = ClientEnvironment.getInstance().getLoginUserName();
 		exportFileName += loginUserName;
 		dr.setReportExpName(exportFileName);
-
+		//zzl[2020-5-19] 得到登录人Code 根据code得到网格id
+		String loginCorpdistinct = ClientEnvironment.getInstance().getLoginUserDeptCorpdistinct();
 		dr.getBillCellPanel().setEditable(false);
 		dr.getBillCellPanel().addBillCellHtmlHrefListener(this);
 		JLabel info = new JLabel("点击数字可查看计算过程");
@@ -63,7 +61,25 @@ public class SelfSalaryQueryWKPanel extends AbstractWorkPanel implements ActionL
 		info.setForeground(Color.RED);
 		dr.getPanel_btn().add(info);
 		bq.addBillQuickActionListener(this);
-		this.add(dr, BorderLayout.CENTER);
+		if( ClientEnvironment.getInstance().getLoginUserName().equals("admin")){
+			WGSelfSalaryQueryWKPanel wgPanel=new WGSelfSalaryQueryWKPanel();
+			pane = new WLTTabbedPane(); //
+			pane.addTab("绩效工资查询", UIUtil.getImage("32_32_05.gif"),
+					dr); //
+			pane.addTab("网格工资查询", UIUtil.getImage("office_070.gif"),wgPanel.getDr()); //
+			this.add(pane, BorderLayout.CENTER);
+		}else if(loginCorpdistinct==null || loginCorpdistinct.equals("")){
+			this.add(dr, BorderLayout.CENTER);
+		}else if(wgflg && loginCorpdistinct.contains("涉农")){
+			WGSelfSalaryQueryWKPanel wgPanel=new WGSelfSalaryQueryWKPanel();
+			pane = new WLTTabbedPane(); //
+			pane.addTab("绩效工资查询", UIUtil.getImage("32_32_05.gif"),dr); //
+			pane.addTab("网格工资查询", UIUtil.getImage("office_070.gif"),wgPanel.getDr()); //
+			this.add(pane, BorderLayout.CENTER);
+		}else{
+			this.add(dr, BorderLayout.CENTER);
+		}
+
 	}
 
 	public void actionPerformed(ActionEvent arg0) {

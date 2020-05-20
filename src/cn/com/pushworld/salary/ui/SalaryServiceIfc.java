@@ -55,7 +55,7 @@ public interface SalaryServiceIfc extends WLTRemoteCallServiceIfc {
 
 	public BillCellVO getPostTargetCheckResVO(String checkdate, String checkeduserid) throws Exception;
 
-	public void onCreateSalaryBill(List sql, String salarybillid, String accountid, String checkdate) throws Exception;
+	public void onCreateSalaryBill(List sql, String salarybillid, String accountid, String checkdate,BillVO vo) throws Exception;
 
 	public BillCellVO[] getTarget_Check_ReviseVO(String logid) throws Exception;
 

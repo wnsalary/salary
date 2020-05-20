@@ -28,15 +28,7 @@ import cn.com.infostrategy.to.common.HashVO;
 import cn.com.infostrategy.to.common.TBUtil;
 import cn.com.infostrategy.to.common.WLTAppException;
 import cn.com.infostrategy.to.common.WLTLogger;
-import cn.com.infostrategy.to.mdata.BillCellItemVO;
-import cn.com.infostrategy.to.mdata.BillCellVO;
-import cn.com.infostrategy.to.mdata.BillVO;
-import cn.com.infostrategy.to.mdata.DeleteSQLBuilder;
-import cn.com.infostrategy.to.mdata.InsertSQLBuilder;
-import cn.com.infostrategy.to.mdata.Pub_Templet_1ParVO;
-import cn.com.infostrategy.to.mdata.Pub_Templet_1VO;
-import cn.com.infostrategy.to.mdata.Pub_Templet_1_ItemVO;
-import cn.com.infostrategy.to.mdata.UpdateSQLBuilder;
+import cn.com.infostrategy.to.mdata.*;
 import cn.com.infostrategy.to.report.ReportUtil;
 import cn.com.infostrategy.ui.common.LookAndFeel;
 import cn.com.pushworld.salary.bs.dinterface.DataInterfaceDMO;
@@ -364,6 +356,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			logisb.putFieldValue("creator", loginuserid);
 			logisb.putFieldValue("createdate", getTb().getCurrDate());
 			logisb.putFieldValue("createcorp", getSdmo().getLoginUserParentCorpItemValueByType(corpname, "集团", "id"));
+			logisb.putFieldValue("zbtype",param.get("zbtype").toString());
 			param.put("logid", logid);
 			sqls.add(logisb.getSQL());
 		} else {
@@ -487,8 +480,6 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	 * 考核人、被考核部门、指标、指标类型作为唯一key来判断 如果有了就对比一些字段决定是否进行更新
 	 * 如果没有就进行插入操作，插入操作进行是否沿用的逻辑处理
 	 * 
-	 * @param logid
-	 * @param targetids
 	 * @throws Exception
 	 */
 	public void createScoreTable_DeptTarget(HashMap param, List<String> sqls) throws Exception {
@@ -782,7 +773,6 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	/**
 	 * 重要方法检查人员考核方案的合法性 和给予一些提醒
 	 * 
-	 * @param month
 	 * @return
 	 */
 	public HashMap checkViladate_Person() {
@@ -800,6 +790,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	 * @throws Exception
 	 */
 	public void createScoreTable_Person(List<String> sqls, HashMap param) throws Exception {
+		boolean wgflg = getTb().getSysOptionBooleanValue("是否启动网格指标计算模式",false);
 		String plv = param.get("plv").toString();
 		String isupdate = param.get("isupdate") + ""; // 是否是更新操作
 		HashMap<String, HashVO> ishave = new HashMap<String, HashVO>(); // 被考核人_考核人_指标_指标类型
@@ -1112,13 +1103,116 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 		// 查询所有的员工定量指标
 		HashVO[] quantifytargetvos = getDmo().getHashVoArrayByDS(null, "select * from sal_person_check_list where 1=1 and targettype='员工定量指标' and state='参与考核' order by seq");
 		HashMap<String, HashVO> targets_vo = new HashMap<String, HashVO>();
+		HashMap<String, HashVO> targets_vo_wg = new HashMap<String, HashVO>();//zzl[2020-5-18]增加网格指标考核
+		HashVO [] hashVO;
 		for (int t = 0; t < quantifytargetvos.length; t++) { // 将员工定量指标缓存
-			targets_vo.put(quantifytargetvos[t].getStringValue("id"), quantifytargetvos[t]);
+			hashVO=getDmo().getHashVoArrayByDS(null,"select * from SAL_TARGET_CATALOG where id='"+quantifytargetvos[t].getStringValue("catalogid")+"'");
+			if(wgflg && hashVO[0].getStringValue("name").equals("网格指标")){
+				targets_vo_wg.put(quantifytargetvos[t].getStringValue("id"), quantifytargetvos[t]);
+
+			}else{
+				targets_vo.put(quantifytargetvos[t].getStringValue("id"), quantifytargetvos[t]);
+			}
+
 		}
 		// 后来postid改成存的是岗位归类的id了
 		// 每个岗位归类都有哪些岗位(主岗)
 		HashMap sort_postids = getDmo().getHashMapBySQLByDS(null, "select stationkind,postid from v_pub_user_post_2 where isdefault='Y' ", true);
-		HashVO[] targets_postids = getDmo().getHashVoArrayByDS(null, "select id, targetid, postid, planedvalue, weights from sal_person_check_post where targetid in (" + tb.getInCondition((String[]) targets_vo.keySet().toArray(new String[0])) + ")", true);
+	   //zzl[2020-5-18] 获取网格的信息
+		HashVO[] targets_postids_wg= getDmo().getHashVoArrayByDS(null, "select id, targetid, postid, planedvalue, weights from sal_person_check_post_wg where targetid in (" + tb.getInCondition((String[]) targets_vo_wg.keySet().toArray(new String[0])) + ")", true);
+		HashVO[] targets_postids= getDmo().getHashVoArrayByDS(null, "select id, targetid, postid, planedvalue, weights from sal_person_check_post where targetid in (" + tb.getInCondition((String[]) targets_vo.keySet().toArray(new String[0])) + ")", true);
+		if(targets_postids_wg != null && targets_postids_wg.length > 0){
+			String postids = null;
+			String targetids = null;
+			String planedvalue = null;
+			String groupid = null;
+			HashMap<String, String> userid_targetid = new HashMap<String, String>(); // 一个人对同一指标只能有一条记录
+			String checkeduser = null;
+			String scoreuser = null;
+			String targetid = null;
+			String targettype = null;
+			String groupweights = null;
+			HashMap uncheckuser = (HashMap) param.get("uncheckuser");
+			for (int q = 0; q < targets_postids_wg.length; q++) {
+				postids = targets_postids_wg[q].getStringValue("postid", "");
+				targetids = targets_postids_wg[q].getStringValue("targetid");
+				planedvalue = targets_postids_wg[q].getStringValue("planedvalue");
+				groupid = targets_postids_wg[q].getStringValue("id");
+				groupweights = targets_postids_wg[q].getStringValue("weights");
+				HashVO [] wgVO=getDmo().getHashVoArrayByDS(null,"select * from excel_tab_85 where id in("+getTb().getInCondition(targets_postids_wg[q].getStringValue("postid"))+")");
+				for(int u = 0; u < wgVO.length; u++){
+					scoreuser = "-99999";
+					targetid = targetids;
+					targettype = "员工定量指标";
+					String key = checkeduser + "_" + scoreuser + "_" + targetid + "_" + targettype;
+					if ("Y".equals(isupdate) && ishave != null && ishave.containsKey(key)) {
+						targets_vo_wg.get(targetids).setAttributeValue("planedvalue", planedvalue);
+						targets_vo_wg.get(targetids).setAttributeValue("checktype", "");
+						targets_vo_wg.get(targetids).setAttributeValue("scorerweightstype", "");
+						targets_vo_wg.get(targetids).setAttributeValue("groupweights", "");
+						targets_vo_wg.get(targetids).setAttributeValue("groupweightstype", "");
+						targets_vo_wg.get(targetids).setAttributeValue("weights", groupweights);
+						targets_vo_wg.get(targetids).setAttributeValue("scoretype", "手动打分");
+						if (compareIsCanUpdatePerson(targets_vo.get(targetids), ishave.get(key)) || !groupid.equals(ishave.get(key).getStringValue("groupid", ""))) {
+							UpdateSQLBuilder isb = new UpdateSQLBuilder("sal_person_check_score");
+							isb.setWhereCondition(" id=" + ishave.get(key).getStringValue("id"));
+							isb.putFieldValue("targetid", targetids);
+							isb.putFieldValue("targetname", targets_vo_wg.get(targetids).getStringValue("name", ""));
+							isb.putFieldValue("checktype", "");
+							isb.putFieldValue("targettype", "员工定量指标");
+							isb.putFieldValue("scorerweightstype", "");
+							isb.putFieldValue("checkeduser", wgVO[u].getStringValue("id"));
+							isb.putFieldValue("checkedusername", wgVO[u].getStringValue("C") + "-"+wgVO[u].getStringValue("D"));
+							isb.putFieldValue("scoreuser", "-99999");
+							isb.putFieldValue("scoreusertype", "");
+							isb.putFieldValue("groupweights", ""); // 评分组的权重
+							isb.putFieldValue("groupweightstype", ""); // 评分组的权重方式
+							isb.putFieldValue("weights", targets_vo_wg.get(targetids).getStringValue("weights", "")); // 指标权重
+							isb.putFieldValue("checkdate", param.get("month") + "");
+							isb.putFieldValue("createdeptid", param.get("logindeptid") + "");
+							isb.putFieldValue("logid", param.get("logid") + "");
+							isb.putFieldValue("scoretype", "手动打分"); // 后来在高管考核方案中增加了这个字段
+							isb.putFieldValue("planedvalue", planedvalue);
+							isb.putFieldValue("groupid", groupid);
+							isb.putFieldValue("getvalue", targets_vo_wg.get(targetids).getStringValue("getvalue", ""));
+							isb.putFieldValue("partvalue", targets_vo_wg.get(targetids).getStringValue("partvalue", ""));
+							isb.putFieldValue("targetdefine", targets_vo_wg.get(targetids).getStringValue("define", ""));
+							sqls.add(isb.getSQL());
+						}
+						ishave.remove(key);
+					} else {
+						InsertSQLBuilder isb = new InsertSQLBuilder("sal_person_check_score");
+						isb.putFieldValue("id", getDmo().getSequenceNextValByDS(null, "S_SAL_PERSON_CHECK_SCORE", 8000));
+						isb.putFieldValue("targetid", targetids);
+						isb.putFieldValue("targetname", targets_vo_wg.get(targetids).getStringValue("name", ""));
+						isb.putFieldValue("checktype", "");
+						isb.putFieldValue("targettype", "员工定量指标");
+						isb.putFieldValue("scorerweightstype", "");
+						isb.putFieldValue("checkeduser", wgVO[u].getStringValue("id"));
+						isb.putFieldValue("checkedusername", wgVO[u].getStringValue("C") + "-"+wgVO[u].getStringValue("D"));
+						isb.putFieldValue("scoreuser", "-99999");
+						isb.putFieldValue("scoreusertype", "");
+						isb.putFieldValue("groupweights", ""); // 评分组的权重
+						isb.putFieldValue("groupweightstype", ""); // 评分组的权重方式
+						isb.putFieldValue("weights", groupweights); // 指标权重
+						// 后来改成子表中的权重而指标的权重也影藏了
+						isb.putFieldValue("checkdate", param.get("month") + "");
+						isb.putFieldValue("createdeptid", param.get("logindeptid") + "");
+						isb.putFieldValue("logid", param.get("logid") + "");
+						isb.putFieldValue("scoretype", "手动打分"); // 后来在高管考核方案中增加了这个字段
+						isb.putFieldValue("planedvalue", planedvalue);
+						isb.putFieldValue("groupid", groupid);
+						isb.putFieldValue("getvalue", targets_vo_wg.get(targetids).getStringValue("getvalue", ""));
+						isb.putFieldValue("partvalue", targets_vo_wg.get(targetids).getStringValue("partvalue", ""));
+						isb.putFieldValue("targetdefine", targets_vo_wg.get(targetids).getStringValue("define", ""));
+						sqls.add(isb.getSQL());
+					}
+					userid_targetid.put(wgVO[u].getStringValue("id")+ "_" + targetids, "");
+				}
+			}
+
+
+		}
 		if (targets_postids != null && targets_postids.length > 0) {
 			String postids = null;
 			String targetids = null;
@@ -1963,7 +2057,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	/**
 	 * 生成某一种类型考核的itemvo
 	 * 废弃 Gwang 2014-4-1
-	 * @param item
+	 * @param  item
 	 * @param rleaderscore
 	 * @param usercolumn
 	 * @param id_namemap
@@ -5415,7 +5509,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	/**
 	 * 创建工资单
 	 */
-	public void onCreateSalaryBill(List sql, String salarybillid, String accountid, String checkdate) throws Exception {
+	public void onCreateSalaryBill(List sql, String salarybillid, String accountid, String checkdate,BillVO vo) throws Exception {
 		// 查询该帐套的所有因子公式
 		HashVO[] vos = getDmo().getHashVoArrayByDS(null, "select f.*,a.seq,a.viewname from sal_account_factor a left join sal_factor_def f on a.factorid=f.id where a.accountid=" + accountid);
 		if (vos != null && vos.length > 0) {
@@ -5429,8 +5523,17 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 				sql.add(isb.getSQL());
 			}
 		}
-		// 得到该帐套的所有人
-		HashVO[] allperson = getDmo().getHashVoArrayByDS(null, "select t1.*,t1.id checkeduser from v_sal_personinfo t1 where id in (select personinfoid from sal_account_personinfo where accountid=" + accountid + ")");
+		//zzl[2020-5-18] 增加网格工资单
+		HashVO[] allperson;
+		HashVO [] modelVos=getDmo().getHashVoArrayByDS(null,"select * from sal_account_set where id='"+vo.getStringValue("sal_account_setid")+"'");
+		if(modelVos[0].getStringValue("name").contains("网格")){
+			allperson=getDmo().getHashVoArrayByDS(null,"select t1.*,t1.id checkeduser,t1.id wgid,sal.ID vuserid,sal.CODE,sal.NAME,sal.SEX,sal.BIRTHDAY,sal.TELLERNO,sal.CARDID,sal.POSITION,sal.STATIONDATE,sal.STATIONRATIO,sal.AGE,sal.DEGREE,sal.UNIVERSITY,sal.SPECIALITIES,sal.POSTTITLE,sal.POSTTITLEAPPLYDATE,sal.POLITICALSTATUS,sal.CONTRACTDATE,sal.JOINWORKDATE,sal.JOINSELFBANKDATE,sal.WORKAGE,sal.SELFBANKAGE,sal.ONLYCHILDRENBTHDAY,sal.SELFBANKACCOUNT,sal.OTHERACCOUNT,sal.FAMILYACCOUNT,sal.PENSION,sal.HOUSINGFUND,sal.PLANWAY,sal.PLANRATIO,sal.ISUNCHECK,sal.FAMILYNAME,sal.MEDICARE,sal.TEMPORARY,sal.OTHERGLOD,sal.TECHNOLOGY,sal.STATIONKIND,sal.MAINDEPTID,sal.DEPTID,sal.DEPTNAME,sal.MAINSTATIONID,sal.MAINSTATION,sal.POSTSEQ,sal.DEPTSEQ,sal.LINKCODE,sal.DEPTCODE from excel_tab_85 t1 left join v_sal_personinfo sal on t1.G=sal.code\n" +
+					"where t1.id in (select personinfoid from sal_account_personinfo where accountid='"+accountid+"')");
+		}else{
+			// 得到该帐套的所有人
+			allperson = getDmo().getHashVoArrayByDS(null, "select t1.*,t1.id checkeduser from v_sal_personinfo t1 where id in (select personinfoid from sal_account_personinfo where accountid=" + accountid + ")");
+
+		}
 		SalaryFomulaParseUtil putil = new SalaryFomulaParseUtil();
 		putil.initFactorHashVOCache(vos); // 注册把所有公式
 		for (int k = 0; k < allperson.length; k++) {

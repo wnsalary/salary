@@ -55,7 +55,7 @@ public final class RefDialog_Month extends AbstractRefDialog {
 	public void initialize() {
 		this.setResizable(false);
 		RefItemVO initVO = getInitRefItemVO();
-		if (initVO == null || initVO.getId() == null) {
+		if (initVO == null || initVO.getId() == null || initVO.getId().equals("")) {
 			getToday();
 		} else {
 			jboxYear.setSelectedItem(initVO.getId().split("-")[0]);

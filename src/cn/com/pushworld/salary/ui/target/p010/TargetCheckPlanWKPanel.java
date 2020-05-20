@@ -25,15 +25,8 @@ import cn.com.infostrategy.to.mdata.BillCellVO;
 import cn.com.infostrategy.to.mdata.BillVO;
 import cn.com.infostrategy.to.mdata.DeleteSQLBuilder;
 import cn.com.infostrategy.to.mdata.RefItemVO;
-import cn.com.infostrategy.ui.common.AbstractWorkPanel;
-import cn.com.infostrategy.ui.common.ClientEnvironment;
-import cn.com.infostrategy.ui.common.MessageBox;
-import cn.com.infostrategy.ui.common.SplashWindow;
-import cn.com.infostrategy.ui.common.UIUtil;
-import cn.com.infostrategy.ui.common.WLTButton;
-import cn.com.infostrategy.ui.common.WLTPanel;
-import cn.com.infostrategy.ui.common.WLTTabbedPane;
-import cn.com.infostrategy.ui.common.WLTTextArea;
+import cn.com.infostrategy.ui.common.*;
+import cn.com.infostrategy.ui.mdata.BillCardDialog;
 import cn.com.infostrategy.ui.mdata.BillListPanel;
 import cn.com.infostrategy.ui.report.style2.DefaultStyleReportPanel_2;
 import cn.com.pushworld.salary.ui.SalaryServiceIfc;
@@ -681,9 +674,27 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 							MessageBox.show(this, "该月份的考核已存在,不能重复进行此操作!");
 							return;
 						} else {
+							//zzl [2020-5-18] 加入指标类型区分网格还是其他
+							BillCardDialog dialog = new BillCardDialog(this,"考核指标类型选择","SAL_TARGET_CHECK_LOG_CODE1",400,200);
+							for(int i=0;i<dialog.getBillcardPanel().getTempletVO().getItemKeys().length;i++){
+								if(dialog.getBillcardPanel().getTempletVO().getItemKeys()[i].equals("zbtype")){
+									dialog.getBillcardPanel().setVisiable("zbtype",true);
+									dialog.getBillcardPanel().setEditable("zbtype",true);
+								}else{
+									dialog.getBillcardPanel().setVisiable(dialog.getBillcardPanel().getTempletVO().getItemKeys()[i],false);
+								}
+							}
+							dialog.getBtn_save().setVisible(false);
+							dialog.setVisible(true);
+							final String zbtype;
+							if(dialog.getCloseType()==1){
+								zbtype = dialog.getBillcardPanel().getRealValueAt("zbtype");
+							}else{
+								return;
+							}
 							new SplashWindow(this, "玩命计算中,请稍候...", new AbstractAction() {
 								public void actionPerformed(ActionEvent e) {
-									createScoreTable(rtnvo.getId());
+									createScoreTable(rtnvo.getId(),zbtype);
 								}
 							}, false);
 						}
@@ -696,7 +707,7 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 		}
 	}
 
-	private void createScoreTable(String month) {
+	private void createScoreTable(String month,String zbtype) {
 		try {
 			SalaryServiceIfc ifc = (SalaryServiceIfc) UIUtil.lookUpRemoteService(SalaryServiceIfc.class);
 			HashMap map = ifc.checkViladate(month);
@@ -715,6 +726,7 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 				}
 				map.put("loginuserid", ClientEnvironment.getCurrLoginUserVO().getId());
 				map.put("logindeptid", ClientEnvironment.getCurrLoginUserVO().getPKDept());
+				map.put("zbtype",zbtype);
 				ifc.createScoreTable(map);
 				MessageBox.show(this, "考核表生成完毕!");
 				planListPanel.refreshData();

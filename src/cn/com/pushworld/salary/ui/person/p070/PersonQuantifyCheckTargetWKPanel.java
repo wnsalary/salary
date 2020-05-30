@@ -298,9 +298,10 @@ public class PersonQuantifyCheckTargetWKPanel extends AbstractWorkPanel implemen
 		if (resuleVos != null) {
 			Pub_Templet_1VO tmo = null;
 			try {
-				if(wgflg){
-						tmo = UIUtil.getPub_Templet_1VO("V_SAL_SCORE_POST_DEPT_WG");
-				}else{
+				HashVO[] vos = UIUtil.getHashVoArrayByDS(null, "select * from SAL_TARGET_CATALOG where id='" + _billvo.getStringValue("catalogid") + "'");
+				if (wgflg && vos[0].getStringValue("name").equals("Íø¸ñÖ¸±ê")) {
+					tmo = UIUtil.getPub_Templet_1VO("V_SAL_SCORE_POST_DEPT_WG");
+				} else {
 					tmo = UIUtil.getPub_Templet_1VO("V_SAL_SCORE_POST_DEPT_CODE1");
 				}
 			} catch (Exception e) {

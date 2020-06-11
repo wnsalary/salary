@@ -658,7 +658,7 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 	private void autoCreatePlan() {
 		try {
 			String[] ids = UIUtil.getStringArrayFirstColByDS(null, "select ID from sal_target_check_log where status != '考核结束'");
-			if (ids != null && ids.length > 0) {
+			if (ids != null && ids.length > 1) {
 				MessageBox.show(this, "还有未结束的考核,不能进行此操作!");
 				return;
 			}

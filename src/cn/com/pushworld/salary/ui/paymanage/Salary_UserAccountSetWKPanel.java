@@ -108,7 +108,7 @@ public class Salary_UserAccountSetWKPanel extends AbstractWorkPanel implements B
 			MessageBox.show(grid_list, "请选择一个工资帐套来进行此操作!");
 			return;
 		}
-		final BillListDialog dialog=new BillListDialog(this,"网格列表","EXCEL_TAB_85_CODE_1");
+		final BillListDialog dialog=new BillListDialog(this,"网格列表","EXCEL_TAB_85_CODE_2");
 		dialog.getBilllistPanel().setRowNumberChecked(true);
 		dialog.getBtn_confirm().addActionListener(new ActionListener(){
 			@Override

@@ -670,7 +670,7 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 					final RefItemVO rtnvo = chooseMonth.getReturnRefItemVO();
 					if (rtnvo != null) {
 						HashVO[] vos = UIUtil.getHashVoArrayByDS(null, "select * from sal_target_check_log where checkdate = '" + rtnvo.getId() + "'");
-						if (vos != null && vos.length > 0) {
+						if (vos != null && vos.length > 1) {
 							MessageBox.show(this, "该月份的考核已存在,不能重复进行此操作!");
 							return;
 						} else {

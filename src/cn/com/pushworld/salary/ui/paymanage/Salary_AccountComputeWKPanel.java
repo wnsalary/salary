@@ -39,7 +39,7 @@ import cn.com.pushworld.salary.ui.SalaryUIUtil;
  */
 public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements ActionListener {
 	private BillListPanel salary_bill_list = null; //工资单列表
-	private WLTButton create_sa_bill, open_sa_bill, del_sa_bill, submit_sa_bill = null;
+	private WLTButton create_sa_bill, open_sa_bill, del_sa_bill, submit_sa_bill,submit_sa_end = null;
 	private BillCardDialog dialog = null;
 	private SalaryServiceIfc service;
 	private String checkdate=null;
@@ -54,12 +54,14 @@ public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements A
 		create_sa_bill = new WLTButton("生成工资单", "zt_028.gif");
 		open_sa_bill = new WLTButton("查看工资单", "zt_010.gif");
 		del_sa_bill = new WLTButton("删除工资单", "zt_031.gif");
-		submit_sa_bill = new WLTButton("开放工资单", "zt_062.gif");
+		submit_sa_bill = new WLTButton("开放工资单", "office_082.gif");
+		submit_sa_end = new WLTButton("关闭工资单", "office_166.gif");
 		create_sa_bill.addActionListener(this);
 		open_sa_bill.addActionListener(this);
 		del_sa_bill.addActionListener(this);
 		submit_sa_bill.addActionListener(this);
-		salary_bill_list.addBatchBillListButton(new WLTButton[] { create_sa_bill, open_sa_bill, del_sa_bill, submit_sa_bill });
+		submit_sa_end.addActionListener(this);
+		salary_bill_list.addBatchBillListButton(new WLTButton[] { create_sa_bill, open_sa_bill, del_sa_bill, submit_sa_bill,submit_sa_end });
 		salary_bill_list.repaintBillListButton();
 	}
 
@@ -72,6 +74,8 @@ public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements A
 			onDel();
 		} else if (e.getSource() == submit_sa_bill) {
 			onSubmit();
+		}else if(e.getSource() == submit_sa_end){
+			onend();
 		}
 	}
 
@@ -279,6 +283,30 @@ public class Salary_AccountComputeWKPanel extends AbstractWorkPanel implements A
 		if (MessageBox.showConfirmDialog(salary_bill_list, "开放工资单后员工可在个人中心进行个人工资单查询!您确认开放吗?", "提醒", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
 			UpdateSQLBuilder usb = new UpdateSQLBuilder(salary_bill_list.getTempletVO().getSavedtablename());
 			usb.putFieldValue("state", "已开放");
+			usb.setWhereCondition("id=" + salary_bill_list.getSelectedBillVO().getPkValue());
+			try {
+				UIUtil.executeBatchByDS(null, new String[] { usb.getSQL() });
+				MessageBox.show(this, "操作成功!");
+				salary_bill_list.refreshCurrSelectedRow();
+			} catch (Exception e) {
+				e.printStackTrace();
+				MessageBox.show(this, "操作失败请再次尝试或与管理员联系!");
+			}
+		}
+	}
+
+	/**
+	 * zzl
+	 */
+	public void onend() {
+		int li_selRow = salary_bill_list.getSelectedRow();
+		if (li_selRow < 0) {
+			MessageBox.showSelectOne(salary_bill_list);
+			return;
+		}
+		if (MessageBox.showConfirmDialog(salary_bill_list, "您确定关闭工资单吗?", "提醒", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+			UpdateSQLBuilder usb = new UpdateSQLBuilder(salary_bill_list.getTempletVO().getSavedtablename());
+			usb.putFieldValue("state", "未开放");
 			usb.setWhereCondition("id=" + salary_bill_list.getSelectedBillVO().getPkValue());
 			try {
 				UIUtil.executeBatchByDS(null, new String[] { usb.getSQL() });

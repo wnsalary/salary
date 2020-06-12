@@ -28,6 +28,8 @@ import cn.com.infostrategy.to.mdata.RefItemVO;
 import cn.com.infostrategy.ui.common.*;
 import cn.com.infostrategy.ui.mdata.BillCardDialog;
 import cn.com.infostrategy.ui.mdata.BillListPanel;
+import cn.com.infostrategy.ui.mdata.BillListSelectListener;
+import cn.com.infostrategy.ui.mdata.BillListSelectionEvent;
 import cn.com.infostrategy.ui.report.style2.DefaultStyleReportPanel_2;
 import cn.com.pushworld.salary.ui.SalaryServiceIfc;
 import cn.com.pushworld.salary.ui.paymanage.RefDialog_Month;
@@ -37,10 +39,10 @@ import cn.com.pushworld.salary.ui.paymanage.RefDialog_Month;
  * 
  * @author haoming create by 2013-7-9
  */
-public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionListener {
+public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionListener, BillListSelectListener {
 	private static final long serialVersionUID = 1803665179022243678L;
 	private BillListPanel planListPanel;
-	private WLTButton btn_endDeptJJ, btn_enddeptDL, btn_createPlan, btn_delPlan, btn_enddeptDx, btn_endPlan, btn_calc_persondx, btn_calc_persondltarget, btn_QQ_money, btn_xymoney, btn_persondl_levelcalc, btn_qz, btn_calc_postduty, btn_person_dl_auto;
+	private WLTButton btn_endDeptJJ, btn_enddeptDL, btn_createPlan, btn_delPlan, btn_enddeptDx, btn_endPlan, btn_calc_persondx, btn_calc_persondltarget, btn_QQ_money, btn_xymoney, btn_persondl_levelcalc, btn_qz,btn_end, btn_calc_postduty, btn_person_dl_auto;
 	private SalaryServiceIfc service;
 	private WLTTabbedPane tabPane = new WLTTabbedPane();
 	private String containsPostDutyCheck = TBUtil.getTBUtil().getSysOptionStringValue("是否包含岗位职责评价功能", "N"); // 涡阳提出的岗责指标评价。
@@ -61,6 +63,7 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 		hid_btn = getMenuConfMapValueAsStr("隐藏按钮", "");
 		List<WLTButton> list = new ArrayList<WLTButton>();// 显示的所有按钮
 		planListPanel = new BillListPanel("SAL_TARGET_CHECK_LOG_CODE1");
+		planListPanel.addBillListSelectListener(this);
 		btn_createPlan = new WLTButton("新建考核", UIUtil.getImage("add.gif"));
 		btn_createPlan.addActionListener(this);
 		list.add(btn_createPlan);
@@ -146,6 +149,9 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 		btn_qz = new WLTButton(index + "、强改为考核中");
 		btn_qz.addActionListener(this);
 		list.add(btn_qz);
+		btn_end = new WLTButton(index + "、强制结束考核");
+		btn_end.addActionListener(this);
+		list.add(btn_end);
 
 		btn_endPlan.addActionListener(this);
 		btn_QQ_money.addActionListener(this);
@@ -294,7 +300,18 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
-		} else if (e.getSource() == btn_calc_postduty) {// 岗位职责评价
+
+		}else if(e.getSource() == btn_end){
+			try {
+				if (planvo == null) {
+					MessageBox.showSelectOne(planListPanel);
+					return;
+				}
+				UIUtil.executeUpdateByDS(null, "update SAL_TARGET_CHECK_LOG set status='考核结束' where id = " + planvo.getStringValue("id"));
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		}else if (e.getSource() == btn_calc_postduty) {// 岗位职责评价
 			try {
 				if (planvo == null) {
 					MessageBox.showSelectOne(planListPanel);
@@ -969,4 +986,27 @@ public class TargetCheckPlanWKPanel extends AbstractWorkPanel implements ActionL
 		return mainPanel;
 	}
 
+	/**
+	 * zzl[2020-6-12] 加入网格工资单所有需要控制按钮。
+	 * @param _event
+	 */
+	@Override
+	public void onBillListSelectChanged(BillListSelectionEvent _event) {
+		if(_event.getSource()==planListPanel){
+			String ZBTYPE=planListPanel.getSelectedBillVO().getStringValue("ZBTYPE");
+			if(ZBTYPE.equals("网格")){
+				btn_enddeptDL.setEnabled(false);
+				btn_enddeptDx.setEnabled(false);
+				btn_endDeptJJ.setEnabled(false);
+				btn_calc_persondx.setEnabled(false);
+				btn_calc_postduty.setEnabled(false);
+			}else{
+				btn_enddeptDL.setEnabled(true);
+				btn_enddeptDx.setEnabled(true);
+				btn_endDeptJJ.setEnabled(true);
+				btn_calc_persondx.setEnabled(true);
+				btn_calc_postduty.setEnabled(true);
+			}
+		}
+	}
 }

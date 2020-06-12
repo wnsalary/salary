@@ -122,17 +122,17 @@ public class WGSelfSalaryQueryWKPanel extends AbstractWorkPanel implements Actio
                 BillCellItemVO[][] items=null;
                 int maxlength = 0;
                 String[] allkeys=null;
+                detailid_desc = new HashMap();
                 for(int w=0;w<wgidVos.length;w++){
                     HashVO[] vos = UIUtil.getHashVoArrayByDS(null, "select d.*,b.monthly,b.name billname from sal_salarybill_detail d left join sal_salarybill b on d.salarybillid=b.id where d.userid='"+wgidVos[w].getStringValue("id")+"'  and " + monthly + " and d.viewname is not null  and d.factorid is not null and b.state='已开放'  order by b.monthly,d.salarybillid, d.seq");
                     if (vos != null && vos.length > 0) {
                         LinkedHashMap<String, LinkedHashMap> map = new LinkedHashMap<String, LinkedHashMap>();
                         HashMap id_name = new HashMap();
                         HashMap salaryid_name = new HashMap();
-                        detailid_desc = new HashMap();
                         int j1 = 0;
                         for (int i = 0; i < vos.length; i++) {
-                            id_name.put(vos[i].getStringValue("id"), vos[i].getStringValue("viewname").trim());
                             detailid_desc.put(vos[i].getStringValue("id"), vos[i].getStringValue("computedesc"));
+                            id_name.put(vos[i].getStringValue("id"), vos[i].getStringValue("viewname").trim());
                             salaryid_name.put(vos[i].getStringValue("salarybillid"), "" + vos[i].getStringValue("billname") + "");
                             if (map.containsKey(vos[i].getStringValue("salarybillid"))) {
                                 j1 = j1 + 1;
@@ -186,6 +186,12 @@ public class WGSelfSalaryQueryWKPanel extends AbstractWorkPanel implements Actio
                                         if (i < map.size() - 1) {
                                             items[rowbg + 3][p] = new BillCellItemVO();
                                             items[rowbg + 3][p].setSpan("1," + allcolumns.length);
+                                            items[rowbg + 2][p].setCellkey(allcolumns[p]);
+                                            items[rowbg + 3][p].setCellvalue(column_calue.get(allcolumns[p]) + "");
+                                            items[rowbg + 3][p].setBackground("191,213,255");
+                                            items[rowbg + 3][p].setIshtmlhref("Y");
+                                            items[rowbg + 3][p].setCelldesc("点击查看计算明细");
+                                            items[rowbg + 3][p].setCellhelp("点击查看计算明细");
                                         }
                                     } else {
                                         items[rowbg][p] = new BillCellItemVO();
@@ -196,6 +202,13 @@ public class WGSelfSalaryQueryWKPanel extends AbstractWorkPanel implements Actio
                                         items[rowbg + 2][p].setBackground("191,213,255");
                                         if (i < map.size() - 1) {
                                             items[rowbg + 3][p] = new BillCellItemVO();
+                                            items[rowbg + 3][p].setSpan("1," + allcolumns.length);
+                                            items[rowbg + 2][p].setCellkey(allcolumns[p]);
+                                            items[rowbg + 3][p].setCellvalue(column_calue.get(allcolumns[p]) + "");
+                                            items[rowbg + 3][p].setBackground("191,213,255");
+                                            items[rowbg + 3][p].setIshtmlhref("Y");
+                                            items[rowbg + 3][p].setCelldesc("点击查看计算明细");
+                                            items[rowbg + 3][p].setCellhelp("点击查看计算明细");
                                         }
                                     }
                                 }
@@ -213,6 +226,7 @@ public class WGSelfSalaryQueryWKPanel extends AbstractWorkPanel implements Actio
                                     items[w + 2][p].setIshtmlhref("Y");
                                     items[w + 2][p].setCelldesc("点击查看计算明细");
                                     items[w + 2][p].setCellhelp("点击查看计算明细");
+
                                 }
                             }
 

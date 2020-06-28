@@ -6415,7 +6415,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 				}
 
 				for (int j = 0; j < types_id.length; j++) {
-					finalres += ", sum(a" + i + "_" + j + ".sum) result_a" + i + "_" + j;
+					finalres += ", ROUND(sum(a" + i + "_" + j + ".sum)/count(a.stationkind),2) result_a" + i + "_" + j;
 				}
 			}
 

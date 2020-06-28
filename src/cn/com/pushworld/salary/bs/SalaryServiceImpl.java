@@ -6183,7 +6183,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 		for (int i = 0; i < vos.length; i++) {
 			sum = sum.add(new BigDecimal(vos[i].getStringValue(key, "0")));
 		}
-		return sum.setScale(0, BigDecimal.ROUND_HALF_UP).toString();
+		return sum.setScale(1, BigDecimal.ROUND_HALF_UP).toString();
 	}
 
 	/**
@@ -6200,7 +6200,8 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			sum = sum.add(new BigDecimal(getXJ(vos, key)));
 			c = c + vos.length;
 		}
-		return new String[] { sum.setScale(0).toString(), c + "" };
+		return new String[] { sum.setScale(1, BigDecimal.ROUND_HALF_UP).toString(), c + "" };
+
 	}
 
 	/** ****************************** */
@@ -6362,7 +6363,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	// 员工工资汇总
-	public HashVO[] getPersonSalary(String[] checkids, String[] types_id) throws Exception {
+	public HashVO[] getPersonSalary(String[] checkids, String[] types_id,String planway) throws Exception {
 		if (checkids != null && checkids.length > 0) {
 			StringBuffer sb_sql = new StringBuffer();
 
@@ -6381,10 +6382,15 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			}
 
 			sb_sql.append(" select a.id, a.name username, b.name corpname, a.stationkind" + finalres);
-			sb_sql.append(" from v_sal_personinfo a left join pub_corp_dept b on a.maindeptid=b.id ");
+			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"') a left join pub_corp_dept b on a.maindeptid=b.id ");
 			for (int i = 0; i < checkids.length; i++) {
 				for (int j = 0; j < types_id.length; j++) {
-					sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");
+					String str= getDmo().getStringValueByDS(null,"select SOURCETYPE from sal_factor_def where 1=1  and  id='"+types_id[j]+"'");
+					if(str.equals("数字")){
+						sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");
+					}else{
+						sb_sql.append(" left join (select userid,factorvalue sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid,factorvalue)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");
+					}
 				}
 			}
 			sb_sql.append(" where a.id in(select distinct userid from sal_salarybill_detail where salarybillid in (" + logids + ")) order by a.code ");
@@ -6395,7 +6401,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	// 岗位工资汇总
-	public HashVO[] getPostSalary(String[] checkids, String[] types_id) throws Exception {
+	public HashVO[] getPostSalary(String[] checkids, String[] types_id,String planway) throws Exception {
 		if (checkids != null && checkids.length > 0) {
 			StringBuffer sb_sql = new StringBuffer();
 
@@ -6414,7 +6420,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			}
 
 			sb_sql.append(" select a.stationkind" + finalres);
-			sb_sql.append(" from v_sal_personinfo a ");
+			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"') a ");
 			for (int i = 0; i < checkids.length; i++) {
 				for (int j = 0; j < types_id.length; j++) {
 					sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");
@@ -6428,7 +6434,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	// 部门工资汇总
-	public HashVO[] getDeptSalary(String[] checkids, String[] types_id) throws Exception {
+	public HashVO[] getDeptSalary(String[] checkids, String[] types_id,String planway) throws Exception {
 		if (checkids != null && checkids.length > 0) {
 			StringBuffer sb_sql = new StringBuffer();
 
@@ -6447,7 +6453,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			}
 
 			sb_sql.append(" select b.name corpname" + finalres);
-			sb_sql.append(" from v_sal_personinfo a left join pub_corp_dept b on a.maindeptid=b.id ");
+			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"') a left join pub_corp_dept b on a.maindeptid=b.id ");
 			for (int i = 0; i < checkids.length; i++) {
 				for (int j = 0; j < types_id.length; j++) {
 					sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");

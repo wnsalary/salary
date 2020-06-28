@@ -86,6 +86,7 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 				String salaryitems = billQueryPanel.getRealValueAt("salaryitems");
 				String month_start = billQueryPanel.getRealValueAt("month_start");
 				String month_end = billQueryPanel.getRealValueAt("month_end");
+				String planway=billQueryPanel.getRealValueAt("planway");
 
 				if (counttype == null || counttype.equals("")) {
 					MessageBox.show(this, "请选择统计类型！");
@@ -146,17 +147,17 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 				SalaryServiceIfc ifc = (SalaryServiceIfc) UIUtil.lookUpRemoteService(SalaryServiceIfc.class);
 				HashVO[] hvs = null;
 				if (counttype.equals("按员工")) {
-					hvs = ifc.getPersonSalary(checkids, types_id);
+					hvs = ifc.getPersonSalary(checkids, types_id,planway);
 				} else if (counttype.equals("按部门")) {
 					title = new String[] { "序号", "部门名称" };
 					field = new String[] { "序号", "corpname" };
 					field_len = new String[] { "序号", "130" };
-					hvs = ifc.getDeptSalary(checkids, types_id);
+					hvs = ifc.getDeptSalary(checkids, types_id,planway);
 				} else if (counttype.equals("按岗位归类")) {
 					title = new String[] { "序号", "岗位归类" };
 					field = new String[] { "序号", "stationkind" };
 					field_len = new String[] { "序号", "100" };
-					hvs = ifc.getPostSalary(checkids, types_id);
+					hvs = ifc.getPostSalary(checkids, types_id,planway);
 				}
 
 				if (hvs == null || !(hvs.length > 0)) {
@@ -278,10 +279,12 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 			if (strs[i].equals("")) {
 				continue;
 			}
-
 			try {
-				sum = sum.add(new BigDecimal(strs[i]));
-				mark++;
+				boolean result=strs[i].matches("([1-9]\\d*\\.?\\d*)|(0\\.\\d*[1-9])");//zzl [2020-6-28]判断是否是小数
+				if(result){
+					sum = sum.add(new BigDecimal(strs[i]));
+					mark++;
+				}
 			} catch (Exception e) {
 				WLTLogger.getLogger(PersonSalaryReportWKPanel.class).error("", e);
 			}
@@ -303,8 +306,11 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 			}
 
 			try {
-				sum = sum.add(new BigDecimal(strs[i]));
-				mark++;
+				boolean result=strs[i].matches("([1-9]\\d*\\.?\\d*)|(0\\.\\d*[1-9])");
+				if(result){
+					sum = sum.add(new BigDecimal(strs[i]));
+					mark++;
+				}
 			} catch (Exception e) {
 				WLTLogger.getLogger(PersonSalaryReportWKPanel.class).error("", e);
 			}

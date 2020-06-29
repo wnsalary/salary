@@ -6363,7 +6363,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	// 员工工资汇总
-	public HashVO[] getPersonSalary(String[] checkids, String[] types_id,String planway) throws Exception {
+	public HashVO[] getPersonSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception {
 		if (checkids != null && checkids.length > 0) {
 			StringBuffer sb_sql = new StringBuffer();
 
@@ -6382,7 +6382,12 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			}
 
 			sb_sql.append(" select a.id, a.name username, b.name corpname, a.stationkind" + finalres);
-			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"') a left join pub_corp_dept b on a.maindeptid=b.id ");
+			if(dept.equals("机关")){
+				sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND in('前台人员','中层管理')) a left join pub_corp_dept b on a.maindeptid=b.id ");
+
+			}else{
+				sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND not in('前台人员','中层管理')) a left join pub_corp_dept b on a.maindeptid=b.id ");
+			}
 			for (int i = 0; i < checkids.length; i++) {
 				for (int j = 0; j < types_id.length; j++) {
 					String str= getDmo().getStringValueByDS(null,"select SOURCETYPE from sal_factor_def where 1=1  and  id='"+types_id[j]+"'");

@@ -70,11 +70,9 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 		JPanel panel_btn = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 2));
 		panel_btn.add(btn_export_excel);
 		panel_btn.add(btn_export_html);
-
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.add(panel_btn, BorderLayout.NORTH);
 		panel.add(billCellPanel, BorderLayout.CENTER);
-
 		this.add(billQueryPanel, BorderLayout.NORTH);
 		this.add(panel, BorderLayout.CENTER);
 	}
@@ -84,9 +82,11 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 			if (e.getSource() == billQueryPanel) {
 				String counttype = billQueryPanel.getRealValueAt("counttype");
 				String salaryitems = billQueryPanel.getRealValueAt("salaryitems");
+				String salaryitems2 = billQueryPanel.getRealValueAt("salaryitems2");
 				String month_start = billQueryPanel.getRealValueAt("month_start");
 				String month_end = billQueryPanel.getRealValueAt("month_end");
 				String planway=billQueryPanel.getRealValueAt("planway");
+				String dept=billQueryPanel.getRealValueAt("dept");
 
 				if (counttype == null || counttype.equals("")) {
 					MessageBox.show(this, "请选择统计类型！");
@@ -94,6 +94,11 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 				}
 
 				if (salaryitems == null || salaryitems.equals("")) {
+					if(salaryitems2 == null || salaryitems2.equals("")){
+						MessageBox.show(this, "请选择工资条目！");
+						return;
+					}else{
+					}
 					MessageBox.show(this, "请选择工资条目！");
 					return;
 				}
@@ -104,6 +109,7 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 				}
 
 				String account_set = new TBUtil().getSysOptionStringValue("综合报表工资统计帐套", "普通账套");
+				account_set=dept.equals("机关")?"机关工资账套":"绩效工资账套";
 				HashVO[] hvs_log = UIUtil.getHashVoArrayByDS(null, "select id, monthly from sal_salarybill where " + "sal_account_setid in (select id from sal_account_set where name in('" + account_set.replace(";", "','") + "')) " + "and monthly>='" + month_start + "' and monthly<='" + month_end + "' order by monthly");
 
 				if (hvs_log == null || !(hvs_log.length > 0)) {
@@ -147,7 +153,7 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 				SalaryServiceIfc ifc = (SalaryServiceIfc) UIUtil.lookUpRemoteService(SalaryServiceIfc.class);
 				HashVO[] hvs = null;
 				if (counttype.equals("按员工")) {
-					hvs = ifc.getPersonSalary(checkids, types_id,planway);
+					hvs = ifc.getPersonSalary(checkids, types_id,planway,dept);
 				} else if (counttype.equals("按部门")) {
 					title = new String[] { "序号", "部门名称" };
 					field = new String[] { "序号", "corpname" };

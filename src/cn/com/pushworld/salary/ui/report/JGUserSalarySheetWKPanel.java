@@ -42,7 +42,7 @@ import java.util.LinkedHashMap;
 /**
  * zzl 员工的绩效报表
  */
-public class UserSalarySheetWKPanel extends AbstractWorkPanel implements ActionListener {
+public class JGUserSalarySheetWKPanel extends AbstractWorkPanel implements ActionListener {
     private static final long serialVersionUID = -1303612160615140713L;
     private BillQueryPanel billQueryPanel=null;
     private WLTTabbedPane pane = null;//zzl[2020-6-16]
@@ -54,7 +54,7 @@ public class UserSalarySheetWKPanel extends AbstractWorkPanel implements ActionL
     public void initialize() {
 //        BillReportPanel reportPanel = new BillReportPanel("REPORTQUERY_CODE4",
 //                "cn.com.pushworld.salary.bs.report.UserSalarySheetBuilderAdapter");
-        billQueryPanel=new BillQueryPanel("REPORTQUERY_CODE6");
+        billQueryPanel=new BillQueryPanel("REPORTQUERY_CODE7");
         billQueryPanel.addBillQuickActionListener(this);
         splitpanel = new WLTSplitPane(0, billQueryPanel, getJPanel(null));
         splitpanel.setOpaque(false);
@@ -73,7 +73,7 @@ public class UserSalarySheetWKPanel extends AbstractWorkPanel implements ActionL
                 String month_start = billQueryPanel.getRealValueAt("month_start");
                 String month_end = billQueryPanel.getRealValueAt("month_end");
                 String planway=billQueryPanel.getRealValueAt("planway");
-                String dept="网点";
+                String dept="机关";
                 if (counttype == null || counttype.equals("")) {
                     MessageBox.show(this, "请选择统计类型！");
                     return;
@@ -155,27 +155,27 @@ public class UserSalarySheetWKPanel extends AbstractWorkPanel implements ActionL
         }
 
     }
-   public JPanel getJPanel( HashVO [] vos){
-       CategoryDataset ds = getDataSet(vos);
-       JFreeChart chart = ChartFactory.createBarChart3D(
-               "网点绩效汇总", //图表标题
-               "网点名称", //目录轴的显示标签
-               "绩效", //数值轴的显示标签
-               ds, //数据集
-               PlotOrientation.VERTICAL, //图表方向
-               true, //是否显示图例，对于简单的柱状图必须为false
-               false, //是否生成提示工具
-               false);         //是否生成url链接
+    public JPanel getJPanel( HashVO [] vos){
+        CategoryDataset ds = getDataSet(vos);
+        JFreeChart chart = ChartFactory.createBarChart3D(
+                "机关绩效汇总", //图表标题
+                "机关部门名称", //目录轴的显示标签
+                "绩效", //数值轴的显示标签
+                ds, //数据集
+                PlotOrientation.VERTICAL, //图表方向
+                true, //是否显示图例，对于简单的柱状图必须为false
+                false, //是否生成提示工具
+                false);         //是否生成url链接
 
-       CategoryPlot categoryplot = (CategoryPlot) chart.getPlot();
+        CategoryPlot categoryplot = (CategoryPlot) chart.getPlot();
 
-       NumberAxis numberaxis = (NumberAxis) categoryplot.getRangeAxis();
+        NumberAxis numberaxis = (NumberAxis) categoryplot.getRangeAxis();
 
-       CategoryAxis domainAxis = categoryplot.getDomainAxis();
-       Font labelFont = new Font("宋体", Font.TRUETYPE_FONT, 12);
-       domainAxis.setLabelFont(labelFont);// X轴的标题bai文字字体
-       domainAxis.setTickLabelFont(labelFont);//X轴坐标上数值字体
-       domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45); // X轴上的duLable让其45度倾斜
+        CategoryAxis domainAxis = categoryplot.getDomainAxis();
+        Font labelFont = new Font("宋体", Font.TRUETYPE_FONT, 12);
+        domainAxis.setLabelFont(labelFont);// X轴的标题bai文字字体
+        domainAxis.setTickLabelFont(labelFont);//X轴坐标上数值字体
+        domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45); // X轴上的duLable让其45度倾斜
 
 //       /*------设置X轴坐标上的文字-----------*/
 //       domainAxis.setTickLabelFont(new Font("宋体", Font.PLAIN, 13));
@@ -183,23 +183,23 @@ public class UserSalarySheetWKPanel extends AbstractWorkPanel implements ActionL
 //       /*------设置X轴的标题文字------------*/
 //       domainAxis.setLabelFont(new Font("宋体", Font.PLAIN, 12));
 
-       /*------设置Y轴坐标上的文字-----------*/
-       numberaxis.setTickLabelFont(new Font("sans-serif", Font.PLAIN, 12));
+        /*------设置Y轴坐标上的文字-----------*/
+        numberaxis.setTickLabelFont(new Font("sans-serif", Font.PLAIN, 12));
 
-       /*------设置Y轴的标题文字------------*/
-       numberaxis.setLabelFont(new Font("黑体", Font.PLAIN, 12));
+        /*------设置Y轴的标题文字------------*/
+        numberaxis.setLabelFont(new Font("黑体", Font.PLAIN, 12));
 
-       /*------这句代码解决了底部汉字乱码的问题-----------*/
-       chart.getLegend().setItemFont(new Font("宋体", Font.PLAIN, 12));
+        /*------这句代码解决了底部汉字乱码的问题-----------*/
+        chart.getLegend().setItemFont(new Font("宋体", Font.PLAIN, 12));
 
-       /*******这句代码解决了标题汉字乱码的问题********/
-       chart.getTitle().setFont(new Font("宋体", Font.PLAIN, 12));
+        /*******这句代码解决了标题汉字乱码的问题********/
+        chart.getTitle().setFont(new Font("宋体", Font.PLAIN, 12));
 
 
-       JPanel jPanel = new ChartPanel(chart);
+        JPanel jPanel = new ChartPanel(chart);
 
-       return jPanel;
-   }
+        return jPanel;
+    }
     // 部门工资汇总
     public HashVO[] getDeptSalary(String[] checkids, String[] types_id, String planway,String dept) throws Exception {
         if (checkids != null && checkids.length > 0) {

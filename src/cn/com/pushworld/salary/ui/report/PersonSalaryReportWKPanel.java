@@ -158,12 +158,12 @@ public class PersonSalaryReportWKPanel extends AbstractWorkPanel implements Acti
 					title = new String[] { "ÐòºÅ", "²¿ÃÅÃû³Æ" };
 					field = new String[] { "ÐòºÅ", "corpname" };
 					field_len = new String[] { "ÐòºÅ", "130" };
-					hvs = ifc.getDeptSalary(checkids, types_id,planway);
+					hvs = ifc.getDeptSalary(checkids, types_id,planway,dept);
 				} else if (counttype.equals("°´¸ÚÎ»¹éÀà")) {
 					title = new String[] { "ÐòºÅ", "¸ÚÎ»¹éÀà" };
 					field = new String[] { "ÐòºÅ", "stationkind" };
 					field_len = new String[] { "ÐòºÅ", "100" };
-					hvs = ifc.getPostSalary(checkids, types_id,planway);
+					hvs = ifc.getPostSalary(checkids, types_id,planway,dept);
 				}
 
 				if (hvs == null || !(hvs.length > 0)) {

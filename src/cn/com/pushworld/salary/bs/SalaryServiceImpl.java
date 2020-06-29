@@ -6406,7 +6406,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	// 岗位工资汇总
-	public HashVO[] getPostSalary(String[] checkids, String[] types_id,String planway) throws Exception {
+	public HashVO[] getPostSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception {
 		if (checkids != null && checkids.length > 0) {
 			StringBuffer sb_sql = new StringBuffer();
 
@@ -6425,7 +6425,11 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			}
 
 			sb_sql.append(" select a.stationkind" + finalres);
-			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"') a ");
+			if(dept.equals("机关")){
+				sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND in('前台人员','中层管理')) a ");
+			}else{
+				sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND not in('前台人员','中层管理')) a ");
+			}
 			for (int i = 0; i < checkids.length; i++) {
 				for (int j = 0; j < types_id.length; j++) {
 					sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");
@@ -6439,7 +6443,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	// 部门工资汇总
-	public HashVO[] getDeptSalary(String[] checkids, String[] types_id,String planway) throws Exception {
+	public HashVO[] getDeptSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception {
 		if (checkids != null && checkids.length > 0) {
 			StringBuffer sb_sql = new StringBuffer();
 
@@ -6458,7 +6462,12 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 			}
 
 			sb_sql.append(" select b.name corpname" + finalres);
-			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"') a left join pub_corp_dept b on a.maindeptid=b.id ");
+			if(dept.equals("机关")){
+				sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND in('前台人员','中层管理')) a left join pub_corp_dept b on a.maindeptid=b.id ");
+			}else{
+				sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND not in('前台人员','中层管理')) a left join pub_corp_dept b on a.maindeptid=b.id ");
+
+			}
 			for (int i = 0; i < checkids.length; i++) {
 				for (int j = 0; j < types_id.length; j++) {
 					sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");

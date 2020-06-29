@@ -108,10 +108,10 @@ public interface SalaryServiceIfc extends WLTRemoteCallServiceIfc {
 	public HashVO[] getPersonSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception;
 
 	// 岗位工资汇总
-	public HashVO[] getPostSalary(String[] checkids, String[] types_id,String planway) throws Exception;
+	public HashVO[] getPostSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception;
 
 	// 部门工资汇总
-	public HashVO[] getDeptSalary(String[] checkids, String[] types_id,String planway) throws Exception;
+	public HashVO[] getDeptSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception;
 
 	// 延期支付基金 免责基金 股权激励基金
 	public HashVO[] getPersonStyle(String type, String month, String userid, String excel_code, String[] types, String[] types_nocou) throws Exception;

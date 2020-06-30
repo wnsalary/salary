@@ -17,6 +17,7 @@ import org.jfree.chart.labels.StandardXYItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.BarRenderer3D;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -168,6 +169,15 @@ public class JGUserSalarySheetWKPanel extends AbstractWorkPanel implements Actio
                 false);         //是否生成url链接
 
         CategoryPlot categoryplot = (CategoryPlot) chart.getPlot();
+        BarRenderer renderer = (BarRenderer) categoryplot.getRenderer();
+        //显示条目标签
+        renderer.setBaseItemLabelsVisible(true);
+        //设置条目标签生成器,在JFreeChart1.0.6之前可以通过renderer.setItemLabelGenerator(CategoryItemLabelGenerator generator)方法实现，但是从版本1.0.6开始有下面方法代替
+        renderer
+                .setBaseItemLabelGenerator(new StandardCategoryItemLabelGenerator());
+        //设置条目标签显示的位置,outline表示在条目区域外,baseline_center表示基于基线且居中
+        renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(
+                ItemLabelAnchor.OUTSIDE12, TextAnchor.BASELINE_CENTER));
 
         NumberAxis numberaxis = (NumberAxis) categoryplot.getRangeAxis();
 

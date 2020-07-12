@@ -18,6 +18,7 @@ import cn.com.infostrategy.to.common.WLTConstants;
 import cn.com.infostrategy.to.mdata.BillVO;
 import cn.com.infostrategy.to.mdata.Pub_Templet_1VO;
 import cn.com.infostrategy.ui.common.AbstractWorkPanel;
+import cn.com.infostrategy.ui.common.ClientEnvironment;
 import cn.com.infostrategy.ui.common.MessageBox;
 import cn.com.infostrategy.ui.common.SplashWindow;
 import cn.com.infostrategy.ui.common.UIUtil;
@@ -41,7 +42,7 @@ public class PersonQuantifyCheckTargetWKPanel extends AbstractWorkPanel implemen
 	private BillListPanel postTypeListPanel, targetListPanel;
 	private WLTButton btn_add_2, btn_edit_2, btn_delete2, btn_action_1, btn_action_2;
 	private TBUtil tbUtil = null; //zzl[2020-5-11]
-    private  Boolean wgflg=false;
+	private  Boolean wgflg=false;
 	public void initialize() {
 		wgflg=getTBUtil().getSysOptionBooleanValue("是否启动网格指标计算模式", false);//zzl[2020-5-11]
 		tabPane = new WLTTabbedPane();
@@ -66,6 +67,12 @@ public class PersonQuantifyCheckTargetWKPanel extends AbstractWorkPanel implemen
 		btn_edit_2.addActionListener(this);
 		btn_delete2.addActionListener(this);
 		btn_action_2.addActionListener(this);
+		//2020年7月12日12:38:36 fj 不是管理员权限看不到这三个按钮
+		if(!ClientEnvironment.isAdmin()){
+			btn_add_2.setVisible(false);
+			btn_edit_2.setVisible(false);
+			btn_delete2.setVisible(false);
+		}
 		targetListPanel.addBatchBillListButton(new WLTButton[] { btn_add_2, btn_edit_2, btn_delete2, btn_action_2 });
 		targetListPanel.repaintBillListButton();
 		WLTSplitPane splitpane = new WLTSplitPane(WLTSplitPane.HORIZONTAL_SPLIT, postTypeListPanel, targetListPanel);
@@ -73,7 +80,7 @@ public class PersonQuantifyCheckTargetWKPanel extends AbstractWorkPanel implemen
 	}
 
 	/*
-	 * 
+	 *
 	 */
 	private JPanel getAllTargetPanel() {
 		if(wgflg){
@@ -91,6 +98,12 @@ public class PersonQuantifyCheckTargetWKPanel extends AbstractWorkPanel implemen
 		btn_edit.addActionListener(this);
 		btn_delete.addActionListener(this);
 		btn_action_1.addActionListener(this);
+		//2020年7月12日12:38:36 fj 不是管理员权限看不到这三个按钮
+		if(!ClientEnvironment.isAdmin()){
+			btn_add.setVisible(false);
+			btn_edit.setVisible(false);
+			btn_delete.setVisible(false);
+		}
 		listPanel.addBatchBillListButton(new WLTButton[] { btn_add, btn_edit, btn_delete, btn_action_1 });
 		listPanel.repaintBillListButton();
 		return listPanel;

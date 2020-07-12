@@ -41,7 +41,7 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 	private WLTButton btn_tree_add, btn_tree_edit, btn_tree_del; //分类树上的按钮
 	private WLTTabbedPane maintab = null;
 	private TBUtil tbUtil;
-    private boolean wgflg= false;
+	private boolean wgflg= false;
 	public void initialize() {
 		tbUtil = new TBUtil();
 		wgflg = tbUtil.getSysOptionBooleanValue("部门计算是否列表展示",false);//zzl[2020-5-14] 是否开启部门计算已列表展示
@@ -66,6 +66,12 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 		btn_edit0.addActionListener(this);
 		btn_delete0.addActionListener(this);
 		btn_action.addActionListener(this);
+		//2020年7月12日12:40:13 fj  不是管理员权限看不到这三个按钮
+		if(!ClientEnvironment.isAdmin()){
+			btn_add0.setVisible(false);
+			btn_edit0.setVisible(false);
+			btn_delete0.setVisible(false);
+		}
 		bp_targetlist.addBatchBillListButton(new WLTButton[] { btn_add0, btn_edit0, btn_delete0, btn_action });
 		bp_targetlist.repaintBillListButton();
 	}
@@ -78,6 +84,12 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 		btn_tree_edit = WLTButton.createButtonByType(WLTButton.TREE_EDIT);
 		btn_tree_del = new WLTButton("删除");
 		btn_tree_del.addActionListener(this);
+		//2020年7月12日12:40:13 fj  不是管理员权限看不到这三个按钮
+		if(!ClientEnvironment.isAdmin()){
+			btn_tree_add.setVisible(false);
+			btn_tree_edit.setVisible(false);
+			btn_tree_del.setVisible(false);
+		}
 		treePanel.addBatchBillTreeButton(new WLTButton[] { btn_tree_add, btn_tree_edit, btn_tree_del });
 		treePanel.repaintBillTreeButton();
 		listPanel = new BillListPanel("SAL_TARGET_LIST_CODE_QUANTIFY");
@@ -89,6 +101,11 @@ public class QuantifyTargetListWKPanel extends AbstractWorkPanel implements Acti
 		btn_add.addActionListener(this);
 		btn_edit.addActionListener(this);
 		btn_delete.addActionListener(this);
+		if(!ClientEnvironment.isAdmin()){
+			btn_add.setVisible(false);
+			btn_edit.setVisible(false);
+			btn_delete.setVisible(false);
+		}
 		listPanel.addBatchBillListButton(new WLTButton[] { btn_add, btn_edit, btn_delete });
 		listPanel.repaintBillListButton();
 		WLTSplitPane splitPane = new WLTSplitPane(WLTSplitPane.HORIZONTAL_SPLIT, treePanel, listPanel);

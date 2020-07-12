@@ -207,5 +207,8 @@ public interface SalaryServiceIfc extends WLTRemoteCallServiceIfc {
 	//根据部门计价指标获取部门的绩效工资
 	public BillCellVO getJJTargetDeptJXMoney(String _logid, String _deptids[], String[] _noJoinStationkind) throws Exception;
 
+	//2020年7月12日12:46:01    fj   岗位工资汇总年度汇总
+	public HashVO[] getPostGatherSalary(String[] checkids, String[] types_id,String planway,String dept) throws Exception;
+
 
 }

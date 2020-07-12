@@ -7866,4 +7866,49 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 
 				return result.toUpperCase();
 			}
+	//2020年7月12日12:48:28  fj   岗位工资年度汇总
+
+	@Override
+	public HashVO[] getPostGatherSalary(String[] checkids,String[] types_id, String planway, String dept)
+			throws Exception {
+
+		if (checkids != null && checkids.length > 0) {
+			StringBuffer sb_sql = new StringBuffer();
+
+			String finalres = "";
+			String conne_finalres = "";
+			String logids = "";
+			for (int i = 4; i < checkids.length; i++) {
+				if (i == 4) {
+					logids += "'" + checkids[i].replace(",", "','") + "'";
+				} else {
+					logids += ",'" + checkids[i].replace(",", "','") + "'";
+				}
+
+				for (int j = 0; j < types_id.length; j++) {
+					finalres += ", ROUND(sum(a" + i + "_" + j + ".sum),2) result_a" + i + "_" + j;
+					conne_finalres += ",result_a" + i  + "_" + j;
+				}
+			}
+
+//				sb_sql.append("select a.stationkind" + finalres);
+			sb_sql.append("select a.stationkind,b.b result_a0_0,b.c result_a1_0,b.d result_a2_0,b.e result_a3_0 "+conne_finalres+" from ");
+			sb_sql.append("(select a.stationkind" + finalres);
+
+			sb_sql.append(" from (select * from v_sal_personinfo where PLANWAY='"+planway+"' and STATIONKIND not in('前台人员','中层管理')) a ");
+			for (int i = 4; i < checkids.length; i++) {
+				for (int j = 0; j < types_id.length; j++) {
+					sb_sql.append(" left join (select userid,sum(factorvalue) sum from sal_salarybill_detail " + "where salarybillid in('" + checkids[i].replace(",", "','") + "') and factorid='" + types_id[j] + "' group by userid)" + " a" + i + "_" + j + " on a" + i + "_" + j + ".userid = a.id ");
+				}
+			}
+			sb_sql.append(" where a.id in(select distinct userid from sal_salarybill_detail where salarybillid in (" + logids + ")) " + "group by a.stationkind order by a.stationkind)");//order by a.code,a.stationkind
+			sb_sql.append(" a left join excel_tab_113 b  on a.stationkind=b.a");
+
+//				String sql = "select a.stationkind,b.b result_a0_0,b.c result_a1_0,b.d result_a2_0,b.e result_a3_0, a.result_a0_0 result_a4_0 from (select a.stationkind, ROUND(sum(a0_0.sum),2) result_a0_0 from (select * from v_sal_personinfo where PLANWAY='在册' and STATIONKIND not in('前台人员','中层管理')) a  left join (select userid,sum(factorvalue) sum from sal_salarybill_detail where salarybillid in('2933') and factorid='10342' group by userid) a0_0 on a0_0.userid = a.id  where a.id in(select distinct userid from sal_salarybill_detail where salarybillid in ('2933')) group by a.stationkind order by a.stationkind) a left join excel_tab_113 b  on a.stationkind=b.a";
+
+			return getDmo().getHashVoArrayByDS(null, sb_sql.toString());
+		}
+		return null;
+
+	}
 }

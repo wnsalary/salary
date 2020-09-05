@@ -4543,8 +4543,8 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	}
 
 	public HashMap endPlan(String logid, boolean isquiet, String state) throws Exception {
-		String[] unfinishDeptScorer = getDmo().getStringArrayFirstColByDS(null, "select distinct scoreuser from sal_dept_check_score where (status <> '已提交' or status is null) and logid=" + logid);
-		String[] unfinishPersonScorer = getDmo().getStringArrayFirstColByDS(null, "select distinct scoreuser from sal_person_check_score where (status <> '已提交' or status is null) and logid=" + logid);
+		String[] unfinishDeptScorer = getDmo().getStringArrayFirstColByDS(null, "select distinct scoreuser from sal_dept_check_score where (status <> '已提交' or status is null) and TARGETTYPE='部门定性指标' and logid=" + logid);
+		String[] unfinishPersonScorer = getDmo().getStringArrayFirstColByDS(null, "select distinct scoreuser from sal_person_check_score where (status <> '已提交' or status is null) and TARGETTYPE='员工定性指标' and logid=" + logid);
 		LinkedHashMap<String, String> unfinishiuser = new LinkedHashMap<String, String>();
 		boolean deptquantify = false;
 		boolean personquantify = false;
@@ -4692,7 +4692,7 @@ public class SalaryServiceImpl implements SalaryServiceIfc {
 	 * 员工定性计算
 	 */
 	public HashMap endCalcPersonDXScore(String logid, boolean isquiet, String state) throws Exception {
-		String[] unfinishPersonScorer = getDmo().getStringArrayFirstColByDS(null, "select distinct scoreuser from sal_person_check_score where (status <> '已提交' or status is null) and logid=" + logid);
+		String[] unfinishPersonScorer = getDmo().getStringArrayFirstColByDS(null, "select distinct scoreuser from sal_person_check_score where (status <> '已提交' or status is null) and TARGETTYPE='员工定性指标' and logid=" + logid );
 		LinkedHashMap<String, String> unfinishiuser = new LinkedHashMap<String, String>();
 		if (unfinishPersonScorer != null && unfinishPersonScorer.length > 0) {
 			for (int i = 0; i < unfinishPersonScorer.length; i++) {
